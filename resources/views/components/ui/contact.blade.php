@@ -1,0 +1,36 @@
+<section class="bg-gray-100 dark:bg-gray-900">
+    <div class="gap-8 items-center py-8 px-4 mx-auto max-w-screen-xl xl:gap-16 md:grid md:grid-cols-2 sm:py-16 lg:px-6">
+        <img class="w-full object-cover rounded-full" src="{{ asset('images/contact.png') }}" alt="dashboard image">
+        {{-- <img class="w-full hidden dark:block" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/cta/cta-dashboard-mockup-dark.svg" alt="dashboard image"> --}}
+        <div class="mt-4 md:mt-0">
+            {{-- <h3 class="mb-2 text-2xl tracking-tight font-bold text-gray-700 dark:text-white">PT Yasmin Amanah Media</h3> --}}
+            <h1 class="mb-4 text-6xl tracking-tight font-extrabold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600">
+                Mau Internet Yang Stabil ?
+            </h1>
+            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Kemitraan dengan Dukungan Teknologi Terdepan</h4>
+            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Jika Anda tertarik dengan layanan kami atau ingin bekerja sama dalam kemitraan jual kembali jasa layanan akses internet, kami siap mendukung Anda dengan teknologi canggih. Kami menyediakan dashboard aplikasi yang terintegrasi dengan WhatsApp Gateway, Payment Gateway, API Mikrotik, dan fitur-fitur lainnya yang mempermudah pengelolaan layanan. Dengan aplikasi ini, alur kerja Anda menjadi lebih terstruktur dan efektif.</p>
+
+            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Dukungan Menyeluruh dan Harga Terbaik</h4>
+            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Selain teknologi dan support system yang handal, kami juga menawarkan harga terbaik dan pelatihan menyeluruh untuk Anda dan tim. Fitur-fitur seperti perhitungan komisi sales dan manajemen karyawan membuat pekerjaan Anda semakin efisien. Mari kita diskusikan potensi kemitraan ini dan bersama-sama meraih kesuksesan!</p>
+
+            <div class="w-full px-4 mx-auto text-center lg:px-6">
+                <dl class="grid max-w-screen-md gap-8 mx-auto text-gray-900 sm:grid-cols-3 dark:text-white divide-x-2 divide-gray-500 divide-dashed">
+                    <div class="flex flex-col items-center justify-center">
+                        <dt class="mb-2 text-3xl md:text-3xl font-bold">8,113</dt>
+                        <dd class="font-normal text-gray-700 dark:text-gray-400">Happy Clients</dd>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <dt class="mb-2 text-3xl md:text-3xl font-bold">12,000</dt>
+                        <dd class="font-normal text-gray-700 dark:text-gray-400">Home Pass</dd>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <dt class="mb-2 text-3xl md:text-3xl font-bold">36</dt>
+                        <dd class="font-normal text-gray-700 dark:text-gray-400">Mitra RlNet</dd>
+                    </div>
+                </dl>
+            </div>
+
+        </div>
+    </div>
+
+</section>
