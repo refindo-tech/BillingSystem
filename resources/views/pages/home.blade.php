@@ -1,4 +1,4 @@
-<x-layout.app title="Home">
+<x-layout.app title="Akses Internet Tanpa Batas">
     <x-ui.hero title="Saatnya menikmati layanan akses internet super cepat!!" description="Menjangkau Semua Kalangan Masyarakat Untuk Mendapatkan Akses Internet Hebat, Harga Hemat.">
         <x-slot name="image">
             <img src="{{ asset('images/hero/hero.png') }}" alt="hero">
@@ -14,5 +14,7 @@
     <x-ui.partner />
 
     <x-ui.contact />
+
+    {{-- <x-ui.cta /> --}}
 
 </x-layout.app>
