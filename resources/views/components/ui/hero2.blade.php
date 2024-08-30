@@ -3,7 +3,7 @@
         <img class="w-full" src="{{ asset('images/tech3.png') }}" alt="dashboard image">
         {{-- <img class="w-full hidden dark:block" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/cta/cta-dashboard-mockup-dark.svg" alt="dashboard image"> --}}
         <div class="mt-4 md:mt-0">
-            <h3 class="mb-2 text-2xl tracking-tight font-bold text-gray-700 dark:text-white">PT Yasmin Amanah Media</h3>
+            <h3 class="mb-2 text-2xl tracking-tight font-bold text-gray-700 dark:text-white">PT Lintas Network Solusi</h3>
             <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600">Berkelana Tak Terbatas Hanya Dari Genggamanmu.</h2>
             <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Internet Dedicated</h4>
             <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Layanan internet prioritas diperuntukkan bagi instansi/corporate, sekolahan, dan pelaku UMKM dengan trafik besar yang membutuhkan koneksi super cepat, stabil dan support yang bagus.</p>
