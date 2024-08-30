@@ -1,4 +1,4 @@
-<section class="bg-gray-100 dark:bg-gray-900 relative" id="contact">
+<section class="bg-white dark:bg-gray-900 relative" id="contact">
     <div class="gap-8 items-center py-8 px-4 mx-auto max-w-screen-xl xl:gap-16 md:grid md:grid-cols-2 sm:py-16 lg:px-6">
         <img class="w-full object-cover rounded-xl" src="{{ asset('images/contact.png') }}" alt="dashboard image">
         {{-- <img class="w-full hidden dark:block" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/cta/cta-dashboard-mockup-dark.svg" alt="dashboard image"> --}}
@@ -19,7 +19,7 @@
 
             </div>
 
-            <div class="w-full px-4 mx-auto lg:px-6 pb-4 border-4 dark:border-gray-700 rounded-xl border-dashed border-gray-300">
+            <div class="w-full px-4 mx-auto lg:px-6 pb-4 border-4 dark:border-gray-700 rounded-xl border-dashed border-gray-200">
                 <div class="flex flex-col items-center justify-center w-full px-4 mx-auto lg:px-6 p-4 border-b-2 border-gray-300 dark:border-gray-700">
                     <div class="mb-2 text-3xl md:text-3xl font-bold justify-start">
                         <i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-location-dot"></i>
@@ -99,7 +99,7 @@
                         </div>
                         <div class="flex flex-col items-center justify-center">
                             <dt class="mb-2 text-3xl md:text-3xl font-bold">36</dt>
-                            <dd class="font-normal text-gray-100 dark:text-gray-400">Mitra RlNet</dd>
+                            <dd class="font-normal text-gray-100 dark:text-gray-400">Mitra RLNet</dd>
                         </div>
                         <div class="flex flex-col items-center justify-center">
                             <dt class="mb-2 text-3xl md:text-3xl font-bold">205</dt>

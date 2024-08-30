@@ -80,7 +80,7 @@
                     <ul>
                         <li class="mt-[15px]"><a
                                 class="text-deutziawhite hover:text-deutziawhite/80 font-inter text-[15px] font-normal hover:font-semibold"
-                                href="#">Home</a></li>
+                                href="#home">Home</a></li>
                         <li class="mt-[15px]"><a
                                 class="text-deutziawhite hover:text-deutziawhite/80 font-inter text-[15px] font-normal hover:font-semibold"
                                 href="#package">Paket</a></li>
@@ -103,9 +103,8 @@
         <hr class="mt-[30px] text-white" />
         <div class="flex items-center justify-center pb-8 pt-[9px] md:py-8">
             <p class="text-[10px] font-normal text-white md:text-[12px]">
-                © Copyright
-                <!-- -->2024
-                <!-- -->, Copyright © 2024 - PT Lintas Network Solusi
+
+                <!-- -->Copyright © 2024 - PT Lintas Network Solusi
             </p>
         </div>
     </div>
