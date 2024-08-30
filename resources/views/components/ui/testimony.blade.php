@@ -1,4 +1,4 @@
-<section class="bg-gradient-to-r from-pink-500 to-indigo-600">
+<section class="bg-gradient-to-r from-pink-500 to-indigo-600" id="testimony">
     <div id="default-carousel" class="relative py-8 px-4 mx-auto max-w-screen-xl" data-carousel="slide">
         <!-- Carousel wrapper -->
         <div class="relative h-56 overflow-hidden rounded-lg md:h-96">
