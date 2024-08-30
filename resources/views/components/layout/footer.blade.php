@@ -39,7 +39,7 @@
                         </svg>
                     </div>
                     <div class="ml-[18px]">
-                        <a href="tel:+911800123444" class="font-Inter text-[14px] font-medium text-white">+6287773777005</a>
+                        <a href="tel:+6287773777005" class="font-Inter text-[14px] font-medium text-white">+6287773777005</a>
                         <p class="font-Inter text-[12px] font-medium text-white">Support Number</p>
                     </div>
                 </div>
