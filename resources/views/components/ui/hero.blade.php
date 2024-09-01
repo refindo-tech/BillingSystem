@@ -1,7 +1,7 @@
 <section class="bg-white dark:bg-gray-900" id="home">
-    <div class="grid max-w-screen-xl px-4 py-8 pt-16 md:pt-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
-        <div class="mr-auto place-self-center lg:col-span-7">
-            <h1 class="max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white">
+    <div class="grid max-w-screen-xl px-4 py-8 pt-16 lg:pt-16 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
+        <div class="mr-auto place-self-center lg:col-span-7 h-[70vh] lg:h-auto flex flex-col justify-center lg:justify-start items-center lg:items-start">
+            <h1 class="w-full lg:max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left">
                 {{-- Payments tool for software companies --}}
                 {{ $title }}
             </h1>
@@ -14,7 +14,7 @@
                 Pilih Paket
             </button>             --}}
 
-            <div class="relative inline-flex  group">
+            <div class="relative inline-flex group">
                 <div
                     class="absolute transitiona-all duration-1000 opacity-70 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200 animate-tilt">
                 </div>
