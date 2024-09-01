@@ -4,13 +4,13 @@
             <div class="w-full md:w-[480px]">
                 <p class="text-[18px] font-medium text-white">
                 <h1 class="text-white font-extrabold justify-center flex items-center md:justify-start">
-                    {{-- <span class="text-rose-600">RL</span>Net --}}
-                    <img src="{{ asset('logo.png') }}" alt="RLNet" class="w-auto h-[75px]">
+                    {{-- <span class="text-rose-600">NETPLUS COnnection</span>Net --}}
+                    <img src="{{ asset('logo.png') }}" alt="NETPLUS Connection" class="w-auto h-[75px]">
                 </h1>
                 </p>
                 <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Internet Service Provider (ISP)
                     Legal dengan nomor izin penyelenggara 4919/TEL.04.02/2021 dan berlaku secara Nasional. Selaras
-                    dengan itu, RLNet mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan
+                    dengan itu, NETPLUS Connection mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan
                     akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan
                     peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
                 <div class="mt-[18px] flex gap-4">
@@ -101,11 +101,11 @@
             </div>
         </div>
         <hr class="mt-[30px] text-white" />
-        <div class="flex items-center justify-center pb-8 pt-[9px] md:py-8">
+        {{-- <div class="flex items-center justify-center pb-8 pt-[9px] md:py-8">
             <p class="text-[10px] font-normal text-white md:text-[12px]">
 
-                <!-- -->Copyright © 2024 - PT Lintas Network Solusi
+                <!-- -->NETPLUS Connection
             </p>
-        </div>
+        </div> --}}
     </div>
 </footer>

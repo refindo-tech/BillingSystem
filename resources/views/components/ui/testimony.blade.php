@@ -4,15 +4,15 @@
         <div class="relative h-56 overflow-hidden rounded-lg md:h-96">
             <!-- Item 1 -->
             <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <x-ui.testimonyCard name="Didi Permadi" position="Marketer" description="Selama terkoneksi dengan layanan internet RLnet, saya merasa sangat puas dengan kecepatan internet yang diberikan. Sangat cocok untuk kebutuhan saya." avatar="https://api.dicebear.com/9.x/initials/svg?seed=Didi"/>
+                <x-ui.testimonyCard name="Didi Permadi" position="Marketer" description="Selama terkoneksi dengan layanan internet NETPLUS Connection, saya merasa sangat puas dengan kecepatan internet yang diberikan. Sangat cocok untuk kebutuhan saya." avatar="https://api.dicebear.com/9.x/initials/svg?seed=Didi"/>
             </div>
             <!-- Item 2 -->
             <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <x-ui.testimonyCard name="Vista Maharani" position="Content Creator" description="Saya sangat merekomendasikan layanan internet RLnet kepada teman-teman saya. Karena kecepatan internet yang diberikan sangat memuaskan." avatar="https://api.dicebear.com/9.x/initials/svg?seed=VISTA"/>
+                <x-ui.testimonyCard name="Vista Maharani" position="Content Creator" description="Saya sangat merekomendasikan layanan internet NETPLUS Connection kepada teman-teman saya. Karena kecepatan internet yang diberikan sangat memuaskan." avatar="https://api.dicebear.com/9.x/initials/svg?seed=VISTA"/>
             </div>
             <!-- Item 3 -->
             <div class="hidden duration-700 ease-in-out" data-carousel-item>
-                <x-ui.testimonyCard name="Wagiyem" position="Buruh" description="Saya sangat terbantu dengan layanan internet RLnet. Karena saya bisa mengakses internet dengan cepat dan mudah." avatar="https://api.dicebear.com/9.x/initials/svg?seed=Wagiyem"/>
+                <x-ui.testimonyCard name="Wagiyem" position="Buruh" description="Saya sangat terbantu dengan layanan internet NETPLUS Connection. Karena saya bisa mengakses internet dengan cepat dan mudah." avatar="https://api.dicebear.com/9.x/initials/svg?seed=Wagiyem"/>
 
             </div>
         </div>

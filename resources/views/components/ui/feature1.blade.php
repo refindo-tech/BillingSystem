@@ -34,7 +34,7 @@
             <img class="hidden h-[480px] object-fit w-full mb-4 rounded-lg lg:mb-0 lg:flex" src="{{ asset('images/tech2.png') }}" alt="feature image 2">
             <div class="text-gray-500 sm:text-lg dark:text-gray-400">
                 <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600">Teknologi Terdepan, Konektivitas Tanpa Batas!</h2>
-                <p class="mb-8 font-light lg:text-xl">Tetap unggul dengan platform kelas atas dan paket data tanpa batas dari kami. Teknologi fiber dan wireless kami menghadirkan kecepatan super cepat dan cakupan luas, memastikan Anda menikmati pengalaman internet terbaik tanpa batasan. Sambut masa depan konektivitas bersama RLNet.</p>
+                <p class="mb-8 font-light lg:text-xl">Tetap unggul dengan platform kelas atas dan paket data tanpa batas dari kami. Teknologi fiber dan wireless kami menghadirkan kecepatan super cepat dan cakupan luas, memastikan Anda menikmati pengalaman internet terbaik tanpa batasan. Sambut masa depan konektivitas bersama NETPLUS Connection.</p>
                 <!-- List -->
                 {{-- <ul role="list" class="pt-8 space-y-5 border-t border-gray-200 my-7 dark:border-gray-700">
                     <li class="flex space-x-3">

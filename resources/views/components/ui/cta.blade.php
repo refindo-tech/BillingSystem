@@ -16,7 +16,7 @@
                         </div>
                         <div class="flex flex-col items-center justify-center">
                             <dt class="mb-2 text-3xl md:text-3xl font-bold">36</dt>
-                            <dd class="font-normal text-gray-100 dark:text-gray-400">Mitra RlNet</dd>
+                            <dd class="font-normal text-gray-100 dark:text-gray-400">Mitra NETPLUS Connection</dd>
                         </div>
                     </dl>
                 </div>
