@@ -1,3 +1,3 @@
-<header class="fixed w-full z-100">
+<header class="fixed w-full z-50">
     <x-layout.navbar />
 </header>
