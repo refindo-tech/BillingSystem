@@ -12,6 +12,7 @@
             <div
                 class="flex justify-center items-center mb-4 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 border-dashed w-56 md:w-96 mx-auto bg-white absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span class="text-2xl text-center font-bold text-gray-900 dark:text-white">Paket Internet Home</span>
+                {{-- Test --}}
             </div>
             <div
                 class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 border-dashed">
