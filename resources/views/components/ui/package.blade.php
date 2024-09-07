@@ -1,7 +1,7 @@
 <section class="bg-white dark:bg-gray-900" id="package">
     <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
-        <div class="mx-auto max-w-screen-md text-center mb-8 lg:mb-12">
-            <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">
+        <div class="mx-auto max-w-screen-md text-center mb-8 lg:mb-12 lg:items-start pt-16 lg:pt-20">
+            <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white lg:items-start pt-20 lg:pt-20">
                 {{ $title }}
             </h2>
             <p class="mb-5 font-light text-gray-500 sm:text-xl dark:text-gray-400">
@@ -12,10 +12,9 @@
             <div
                 class="flex justify-center items-center mb-4 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 border-dashed w-56 md:w-96 mx-auto bg-white absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span class="text-2xl text-center font-bold text-gray-900 dark:text-white">Paket Internet Home</span>
-                {{-- Test --}}
             </div>
             <div
-                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 md:py-12 border-dashed">
+                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 pt-20 border-dashed">
                 <x-ui.packageCard title="Subsidi" description="Paket internet murah, stabil dan unlimited."
                     price="174K" :features="[
                         'Jaringan Fiber Optik',
@@ -64,7 +63,7 @@
                 <span class="text-2xl text-center font-bold text-gray-900 dark:text-white">Paket Internet Coreporate</span>
             </div>
             <div
-                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 pt-12 md:pt-12 border-dashed">
+                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 pt-20 md:p-6 pt-12 border-dashed">
                 <x-ui.packageCard title="CORP30" description="Paket internet murah, stabil dan unlimited."
                     price="350K" :features="[
                         'Jaringan Fiber Optik',
