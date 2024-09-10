@@ -5,11 +5,11 @@
         <div class="mt-4 md:mt-0">
             <h3 class="mb-2 text-2xl tracking-tight font-bold text-gray-700 dark:text-white">NETPLUS Connection</h3>
             <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600">Berkelana Tak Terbatas Hanya Dari Genggamanmu.</h2>
-            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Internet Dedicated</h4>
-            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Layanan internet prioritas diperuntukkan bagi instansi/corporate, sekolahan, dan pelaku UMKM dengan trafik besar yang membutuhkan koneksi super cepat, stabil dan support yang bagus.</p>
+            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Paket Internet Coreporate</h4>
+            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Layanan internet prioritas diperuntukkan bagi instansi/corporate, sekolah, atau pengusaha UMKM dengan trafik besar yang membutuhkan koneksi super cepat, stabil dan support yang 24Jam. Layanan ini juga cocok untuk para gamer yang memiliki akun sosmed untuk keperluan streaming atau upload konten dengan sekala perbandingan 1:1 untuk upload dan download.</p>
 
-            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Internet Broadband</h4>
-            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Untuk internetan di rumah tak perlu mahal. Layanan prima dari YamNet tetap dapat dinikmati sekeluarga dengan pilihan paket sesuai kebutuhan Anda.</p>
+            <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Paket Internet Home </h4>
+            <p class="mb-6 font-light text-gray-500 md:text-lg dark:text-gray-400">Untuk internetan di rumah tak perlu mahal. Layanan prima dari NET+ Connection tetap dapat dinikmati sekeluarga dengan pilihan paket sesuai kebutuhan Anda. Kami juga menyediakan paket Internet + Ip TV dengan tambahan biaya yang terjangaku, silahkan hubungi cs kami untuk mendapatkan informasi lebih lanjut.</p>
 
             <div class="w-full px-4 mx-auto text-center lg:px-6">
                 <dl class="grid max-w-screen-md gap-8 mx-auto text-gray-900 sm:grid-cols-3 dark:text-white md:divide-x-2 divide-gray-500 divide-dashed">

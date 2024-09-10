@@ -25,7 +25,7 @@
                         <i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-location-dot"></i>
                     </div>
                     <h4 class="mb-0 text-2xl font-bold text-gray-900 dark:text-white">Kantor Pusat</h4>
-                    <div class="font-normal text-center text-gray-700 dark:text-gray-400">Dusun Bulusari, Kelurahan Bulusulur, Kecamatan Wonogiri, Kabupaten Wonogiri, Provinsi Jawa Tengah</div>
+                    <div class="font-normal text-center text-gray-700 dark:text-gray-400">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</div>
                 </div>
     
                 {{-- Contact Us --}}
@@ -44,7 +44,7 @@
                         <div class="flex flex-col items-center justify-center">
                             <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-envelope"></i></dt>
                             <dd class="font-normal text-gray-700 dark:text-gray-400">
-                                <a href="mailto:admin@admin.com"> admin@admin.com </a>
+                                <a href="mailto:cs@netplusconnection.id"> cs@netplusconnection.id </a>
                             </dd>
                             <dd class="font-bold text-gray-700 dark:text-gray-400">Email Address</dd>
                         </div>

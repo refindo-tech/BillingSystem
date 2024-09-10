@@ -1,11 +1,11 @@
-<section class="bg-white dark:bg-gray-900 pt-32 lg:pt-40" id="home">
-    <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12 pt-18">
+<section class="bg-white dark:bg-gray-900 pt-32 lg:pt-32" id="home">
+    <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12 pt-16">
         <div class="mr-auto place-self-center lg:col-span-7 flex flex-col justify-center lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
-            <h1 class="w-full lg:max-w-2xl mb-4 text-5xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
+            <h1 class="w-full lg:max-w-2xl mb-4 text-5xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left bg-clip-text text-transparent bg-gradient-to-r from-net-blue-100 to-net-blue-100 lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
                 {{-- Payments tool for software companies --}}
                 {{ $title }}
             </h1>
-            <p class="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400 text-center">
+            <p class="max-w-2xl mb-6 font-light text-gray-500 lg:mb-8 md:text-lg lg:text-xl dark:text-gray-400 text-center md:text-left">
                 {{-- From checkout to global sales tax compliance, companies around the world use Flowbite to simplify their payment stack. --}}
                 {{ $description }}
             </p>
@@ -15,11 +15,11 @@
             </button>             --}}
 
             <div class="relative inline-flex group">
-                <div
-                    class="absolute transitiona-all duration-1000 opacity-70 -inset-px bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] rounded-xl blur-lg group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200 animate-tilt">
-                </div>
+                {{-- <div
+                    class="absolute transitiona-all duration-1000 opacity-70 -inset-px bg-gradient-to-r from-[#FFBD08] via-[#FE8C1C] to-[#FE5A1D] rounded-xl blur-lg group-hover:opacity-100 group-hover:-inset-1 group-hover:duration-200 animate-tilt">
+                </div> --}}
                 <a href="#package" title="Get package now"
-                    class="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-gray-900 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                    class="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-net-red-50 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
                     role="button">Ayo Pilih Paket Sekarang
                 </a>
             </div>

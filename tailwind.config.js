@@ -17,6 +17,7 @@ export default {
           orange: {
             50: '#FFAC00',
             100: '#FD8C03',
+            150: '#FE5A1D',
           },
           red: {
             50: '#CE1027',
