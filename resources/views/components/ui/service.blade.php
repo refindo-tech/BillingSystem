@@ -7,8 +7,8 @@
         <div class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-12 md:space-y-0">
 
             <x-ui.serviceCard 
-                :title="'Jasa Manage Service & Maintenance Jaringan'" 
-                :description="'Mengelola semua pekerjaan jaringan lokal tentu sangat merepotkan, terlebih saat looping atau problem tak terduga menjadi momok yang dihadapi oleh sebagian besar perusahaan. Mari solusikan bersama kami! Anda Terima Beres!'"
+                :title="'IT Solution'" 
+                :description="'Solusi berbasis teknologi digital untuk perorangan,pelaku usaha UMKM, Perusahaan atau Intansi. Segala macam Layanan Solusi IT, Seperti pengadaan perangkat komputer atau network, CCTV, Sistem Absensi, Acces Control, Instalasi dan konfigurasi jaringan kantor, dan solusi bisnis berbasis IT lainnya!'"
             >
                 <x-slot name="icon">
                     {{-- <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -55,8 +55,8 @@
             </x-ui.serviceCard>
 
             <x-ui.serviceCard 
-                :title="'Jasa Konsultasi'" 
-                :description="'Selain yang kami sebutkan diatas, ada kalanya ide/gagasan itu muncul setelah sistem berjalan atau problem yang sedang terjadi. Mari diskusikan bersama kami. Problem Anda, Inspirasi Solusi bagi kami.'"
+                :title="'Training Center IT'" 
+                :description="'Bangun Karir Professionalmu Di Bidang IT Bersama Kami dengan pengajar-pengajar profesional di bidang nya. Jangan Ragu untuk Meraih Sukses, Tentukan Pilihanmu Sekarang Bersama kami.'"
             >
                 <x-slot name="icon">
                     <i class="fa-solid fa-users-gear text-[5rem] bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600"></i>
