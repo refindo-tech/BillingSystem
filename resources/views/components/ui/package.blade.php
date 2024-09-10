@@ -11,10 +11,10 @@
         <div class="relative pt-12">
             <div
                 class="flex justify-center items-center mb-4 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 border-dashed w-56 md:w-96 mx-auto bg-white absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span class="text-2xl text-center font-bold text-gray-900 dark:text-white">Paket Internet Home</span>
+                <span class="text-2xl text-center font-bold text-net-blue-100 dark:text-white">Paket Internet Home</span>
             </div>
             <div
-                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 pt-20 border-dashed">
+                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 md:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 pt-16 md:py-16 border-dashed">
                 <x-ui.packageCard title="Subsidi" description="Paket internet murah, stabil dan unlimited."
                     price="174K" :features="[
                         'Jaringan Fiber Optik',
@@ -60,11 +60,11 @@
         <div class="relative pt-12">
             <div
                 class="flex justify-center items-center mb-4 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6  border-dashed w-56 md:w-96 mx-auto bg-white absolute -top-[1.25rem] left-1/2 transform -translate-x-1/2">
-                <span class="text-2xl text-center font-bold text-gray-900 dark:text-white">Paket Internet Coreporate</span>
+                <span class="text-2xl text-center font-bold text-net-orange-150 dark:text-white">Paket Internet Coreporate</span>
             </div>
             <div
-                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 pt-20 md:p-6 pt-12 border-dashed">
-                <x-ui.packageCard title="CORP30" description="Paket internet murah, stabil dan unlimited."
+                class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 pt-16 md:pt-16 border-dashed">
+                <x-ui.packageCard title="CORP30" description="Paket Internet Coreporate setabil dengan Wireles support dual band 2.4Ghz dan 5Ghz membuat makin nyaman dalam berselancar. Cocok untuk UMKM atau Sekolah dan mendapatkan layanan prioritas."
                     price="350K" :features="[
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -73,7 +73,7 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-ui.packageCard title="CORP50" description="Cocok untuk penggunaan skala kecil dan menengah."
+                <x-ui.packageCard title="CORP50" description="Paket Internet Coreporate sangat setabil dengan Wireles support dual band 2.4Ghz dan 5Ghz membuat semakin berselancar semakin ngacir. Cocok untuk Sekolah atau Café yang membutuhkan Internet kwalitas prima dan mendapatkan layanan prioritas."
                     price="500K" :features="[
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -83,7 +83,7 @@
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
                 <x-ui.packageCard title="CORP100"
-                    description="Layanan premium dengan kecepatan tinggi pada skala besar." price="800K"
+                    description="Paket Internet Coreporate super setabil dengan Wireles support dual band 2.4Ghz dan 5Ghz membuat pertukaran data, download, upload, lebih optimal. Cocok untuk Perusahaan atau Instansi dan mendapatkan layanan prioritas." price="800K"
                     :features="[
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -93,7 +93,9 @@
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
 
-                <x-ui.packageCard title="CORP150" description="Untuk para Sultan yang membutuhkan layanan terbaik."
+                <x-ui.packageCard title="CORP150" description="Paket Internet Coreporate paling setabil dengan Wireles support dual band 2.4Ghz dan 5Ghz 
+membuat pertukaran data, download, upload dan game semakin optimal. Cocok di gunakan untuk 
+Perusahaan, Instansi, streamer game dan mendapatkan layanan prioritas."
                     price="1.2JT" :features="[
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
