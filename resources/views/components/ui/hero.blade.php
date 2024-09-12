@@ -1,7 +1,7 @@
-<section class="bg-white dark:bg-gray-900 pt-32 lg:pt-4" id="home">
+<section class="bg-white dark:bg-gray-900 pt-8 lg:pt-4" id="home">
 
     	<!--Start Background Animation Body-->
-		<div class="area z-0">
+		<div class="area z-0 h-screen">
 			<ul class="circles">
 				<li></li>
 				<li></li>
@@ -32,7 +32,7 @@
                 Pilih Paket
             </button>             --}}
 
-            <div class="relative inline-flex group">
+            <div class="relative inline-flex group z-10">
                 <a href="#package" title="Get package now"
                     class="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-net-red-50 font-pj rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 group-hover:bg-white group-hover:text-net-red-50 border-4 border-net-red-50 hover:shadow-lg"
                     role="button">
@@ -115,7 +115,6 @@
 */
 .area {
 	width: 100%;
-	height: 100vh;
 	position: absolute;
 	z-index: 1;
     pointer-events: none;
