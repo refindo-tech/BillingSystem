@@ -32,16 +32,16 @@
 
             <x-ui.serviceCard 
                 :title="'Jasa Pembuatan Aplikasi dan Website'" 
-                :description="'Kami siap membantu Anda mengembangkan aplikasi dan website sesuai kebutuhan, mulai dari perancangan, desain, hingga publikasi dan pengelolaan. Dengan solusi digital kami, alur pekerjaan Anda akan menjadi lebih efisien dan mudah!'"
+                :description="'Kami siap membantu Anda membuat aplikasi dan website sesuai kebutuhan, mulai dari desain, pengembangan, hingga peluncuran dan pemeliharaan. Dengan solusi digital kami, alur pekerjaan Anda akan menjadi lebih efisien dan mudah!'"
                 
                 >
-                <x-slot name="icon" class="fa-globe">
+                <x-slot name="icon" class="	fas fa-mobile-alt">
                 </x-slot>
             </x-ui.serviceCard>
 
             <x-ui.serviceCard 
                 :title="'Training Center IT'" 
-                :description="'Bangun Karir Professionalmu Di Bidang IT Bersama Kami dengan pengajar-pengajar profesional di bidang nya. Jangan Ragu untuk Meraih Sukses, Tentukan Pilihanmu Sekarang Bersama kami.'"
+                :description="'Bangun karir professional Anda di bidang IT bersama kami dengan pengajar-pengajar profesional di bidang nya. Jangan ragu untuk meraih sukses, tentukan pilihan Anda sekarang bersama kami.'"
                 
             >
                 <x-slot name="icon" class="fa-users-gear">
