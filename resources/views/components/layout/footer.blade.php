@@ -1,4 +1,4 @@
-<footer class=" bg-violet-900 pt-40 md:pt-24">
+<footer class=" bg-red-700 pt-40 md:pt-24">
     <div class="max-w-screen-xl py-6 mx-auto">
         <div class="flex flex-col justify-between px-8 md:flex-row md:px-10">
             <div class="w-full md:w-[480px]">

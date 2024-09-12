@@ -5,7 +5,7 @@
         <div class="mt-4 md:mt-0">
             <div class="">
                 {{-- <h3 class="mb-2 text-2xl tracking-tight font-bold text-gray-700 dark:text-white">PT Yasmin Amanah Media</h3> --}}
-            <h1 class="mb-4 text-6xl tracking-tight font-extrabold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600">
+            <h1 class="mb-4 text-6xl tracking-tight font-extrabold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700">
                 Mau Internet Yang Stabil ?
             </h1>
             <h4 class="text-lg tracking-tight font-bold text-gray-900 dark:text-white">Kemitraan dengan Dukungan Teknologi Terdepan</h4>
@@ -22,7 +22,7 @@
             <div class="w-full px-4 mx-auto lg:px-6 pb-4 border-4 dark:border-gray-700 rounded-xl border-dashed border-gray-200">
                 <div class="flex flex-col items-center justify-center w-full px-4 mx-auto lg:px-6 p-4 border-b-2 border-gray-300 dark:border-gray-700">
                     <div class="mb-2 text-3xl md:text-3xl font-bold justify-start">
-                        <i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-location-dot"></i>
+                        <i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-solid fa-location-dot"></i>
                     </div>
                     <h4 class="mb-0 text-2xl font-bold text-gray-900 dark:text-white">Kantor Pusat</h4>
                     <div class="font-normal text-center text-gray-700 dark:text-gray-400">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</div>
@@ -32,7 +32,7 @@
                 <div class="w-full px-4 mx-auto lg:px-6 py-4">
                     <dl class="grid max-w-screen-md gap-8 mx-auto text-gray-900 sm:grid-cols-2 dark:text-white">
                         <div class="flex flex-col items-center justify-center">
-                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-brands fa-whatsapp"></i></dt>
+                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-brands fa-whatsapp"></i></dt>
                         
                             <dd class="font-normal text-gray-700 dark:text-gray-400">
                                 <a href="https://api.whatsapp.com/send?phone=6287773777005&amp;text=Halo%20Kak,%20Perkenalkan%0ANama%20Saya%20=%20%0AAlamat%20=%20%0AKeperluan%20=%20"> 08777-3777-005 </a>
@@ -42,14 +42,14 @@
                             
                         </div>
                         <div class="flex flex-col items-center justify-center">
-                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-envelope"></i></dt>
+                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-solid fa-envelope"></i></dt>
                             <dd class="font-normal text-gray-700 dark:text-gray-400">
                                 <a href="mailto:cs@netplusconnection.id"> cs@netplusconnection.id </a>
                             </dd>
                             <dd class="font-bold text-gray-700 dark:text-gray-400">Email Address</dd>
                         </div>
                         {{-- <div class="flex flex-col items-center justify-center">
-                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-pink-500 to-indigo-600 fa-solid fa-location-dot"></i></dt>
+                            <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-solid fa-location-dot"></i></dt>
                             <dd class="font-normal text-gray-700 dark:text-gray-400">Jl. Raya Ciputat Parung No. 123, Tangerang Selatan</dd>
                         </div> --}}
                     </dl>
@@ -85,7 +85,7 @@
     <div class="absolute px-5 justify-center items-center w-full -bottom-[175px] md:-bottom-[85px] drop-shadow-xl">
         <div class="container w-full mx-auto">
             <div
-                class=" max-w-screen-xl bg-gradient-to-br from-pink-500 to-indigo-600 row justify-center rounded-b-[80px] rounded-t-[20px] px-[30px] pb-8 pt-8">
+                class=" max-w-screen-xl bg-gradient-to-br from-blue-800 to-indigo-700 row justify-center rounded-b-[80px] rounded-t-[20px] px-[30px] pb-8 pt-8">
                 <div class="w-full px-4 mx-auto text-center lg:px-6">
                     <dl
                         class="grid gap-4 md:gap-0 max-w-screen-lg mx-auto text-gray-100 grid-cols-2 md:grid-cols-4 dark:text-white md:divide-x-2 divide-gray-100 md:divide-dashed">
