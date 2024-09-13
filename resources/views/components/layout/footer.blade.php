@@ -54,7 +54,7 @@
                         <p class="font-Inter text-[12px] font-medium text-[#fff]">Support Email</p>
                     </div>
                 </div>
-                <div class="mt-[23px] flex">
+                <div class="mt-[23px] flex pl-[10px]">
                     <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[75%]">
                         <svg width="18" height="21" viewBox="0 0 18 21" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
@@ -63,7 +63,7 @@
                                 fill="white"></path>
                         </svg>
                     </div>
-                    <div class="ml-[18px] pl-5">
+                    <div class="ml-[27px]">
                         <a href="mailto:help@lorem.com" class="font-Inter text-[14px] font-medium text-[#fff]">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</a>
                         <p class="font-Inter text-[12px] font-medium text-white">Address</p>
                     </div>
