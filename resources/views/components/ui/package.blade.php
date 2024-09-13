@@ -73,7 +73,7 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-ui.packageCard title="CORP50" description="Paket Internet Coreporate sangat setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat semakin berselancar semakin ngacir. Cocok untuk Sekolah atau Cafe yang membutuhkan Internet kwalitas prima dan mendapatkan layanan prioritas."
+                <x-ui.packageCard2 title="CORP50" description="Paket Internet Coreporate sangat setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat semakin berselancar semakin ngacir. Cocok untuk Sekolah atau Cafe yang membutuhkan Internet kwalitas prima dan mendapatkan layanan prioritas."
                     price="500K" :features="[
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
