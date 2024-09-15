@@ -8,7 +8,7 @@
 
             <x-ui.serviceCard 
                 :title="'IT Solution'" 
-                :description="'Solusi berbasis teknologi digital untuk perorangan,pelaku usaha UMKM, Perusahaan atau Intansi. Segala macam Layanan Solusi IT, Seperti pengadaan perangkat komputer atau network, CCTV, Sistem Absensi, Acces Control, Instalasi dan konfigurasi jaringan kantor, dan solusi bisnis berbasis IT lainnya!'"
+                :description="'Solusi berbasis teknologi digital untuk perorangan,pelaku usaha UMKM, Perusahaan atau Intansi. Segala macam Layanan Solusi IT, Seperti pengadaan perangkat komputer atau network, CCTV, Sistem Absensi, Acces Control, Instalasi dan konfigurasi jaringan kantor, dan solusi bisnis berbasis IT lainnya.'"
             >
                 <x-slot name="icon" class="fa-screwdriver-wrench">
                 </x-slot>

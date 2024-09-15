@@ -1,4 +1,4 @@
-<section class="bg-white dark:bg-gray-900 pt-8 lg:pt-4" id="home">
+<section class="bg-white dark:bg-gray-900 pt-8 lg:pt-0" id="home">
 
     	<!--Start Background Animation Body-->
 		<div class="area z-0 h-screen">
@@ -17,7 +17,7 @@
 		</div>
 		<!--End Background Animation Body-->
 
-    <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12 pt-16 z-10">
+    <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-4 lg:grid-cols-12 pt-16 z-10">
         <div class="mr-auto place-self-center lg:col-span-7 flex flex-col justify-center lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
             <h1 class="z-10 w-full lg:max-w-2xl mb-4 text-5xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-orange-400 lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
                 {{-- Payments tool for software companies --}}
