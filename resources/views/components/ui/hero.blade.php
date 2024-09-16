@@ -56,9 +56,9 @@
             <div class="relative w-full h-96 lg:h-full">
                 
                 <img src="{{ asset('images/hero/hero.png') }}" alt="hero" class="w-[70%] h-auto mx-auto bottom-0 right-0 absolute">
-                <img src="{{ asset('images/hero/1-small.png') }}" alt="hero" class="absolute top-[20%] left-12 w-[35%] animate-float-1">
-                <img src="{{ asset('images/hero/2-small.png') }}" alt="hero" class="absolute top-[43%] left-0 w-[35%] animate-float-2">
-                <img src="{{ asset('images/hero/3-small.png') }}" alt="hero" class="absolute bottom-[20%] -left-12 w-[35%] animate-float-3">
+                <img src="{{ asset('images/hero/1.png') }}" alt="hero" class="absolute top-[20%] left-12 w-[35%] animate-float-1">
+                <img src="{{ asset('images/hero/2.png') }}" alt="hero" class="absolute top-[43%] left-0 w-[35%] animate-float-2">
+                <img src="{{ asset('images/hero/3.png') }}" alt="hero" class="absolute bottom-[20%] -left-12 w-[35%] animate-float-3">
             </div>
         </div>                
     </div>
