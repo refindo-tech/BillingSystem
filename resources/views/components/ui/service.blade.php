@@ -32,7 +32,7 @@
 
             <x-ui.serviceCard 
                 :title="'Jasa Pembuatan Aplikasi dan Website'" 
-                :description="'Kami siap membantu Anda membuat aplikasi dan website sesuai kebutuhan, mulai dari desain, pengembangan, hingga peluncuran dan pemeliharaan. Dengan solusi digital kami, alur pekerjaan Anda akan menjadi lebih efisien dan mudah!'"
+                :description="'Kami siap membantu Anda membuat aplikasi dan website sesuai kebutuhan, mulai dari desain, pengembangan, hingga peluncuran dan pemeliharaan. Dengan solusi digital kami, alur pekerjaan Anda akan menjadi lebih efisien dan mudah.'"
                 
                 >
                 <x-slot name="icon" class="	fas fa-mobile-alt">

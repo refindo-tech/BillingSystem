@@ -8,7 +8,7 @@
                     <img src="{{ asset('logo.png') }}" alt="NETPLUS Connection" class="w-auto h-[75px]">
                 </h1>
                 </p>
-                <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Mintra dari PT Lintas Network Solusi dengan No : 005/LNS/PKS/III/2023 dengan nomor izin penyelenggara Internet Service Provider 0039/TEL.04.02/2023 dan berlaku secara Nasional. Selaras dengan itu, NETPLUS Connection mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
+                <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Mitra dari PT Lintas Network Solusi dengan No : 005/LNS/PKS/III/2023 dengan nomor izin penyelenggara Internet Service Provider 0039/TEL.04.02/2023 dan berlaku secara Nasional. Selaras dengan itu, NETPLUS Connection mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
                 <div class="mt-[18px] flex gap-4">
                     <a class="hover:scale-110" target="_blank" href="#">
                         <i class="fa-brands fa-facebook text-2xl text-white"></i>
@@ -64,7 +64,7 @@
                         </svg>
                     </div>
                     <div class="ml-[27px]">
-                        <a href="mailto:help@lorem.com" class="font-Inter text-[14px] font-medium text-[#fff]">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</a>
+                        <a href="https://maps.app.goo.gl/pmvV2mj6KVq1Vjbh6" class="font-Inter text-[14px] font-medium text-[#fff]">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</a>
                         <p class="font-Inter text-[12px] font-medium text-white">Address</p>
                     </div>
                 </div>
