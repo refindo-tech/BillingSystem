@@ -45,6 +45,13 @@ export default {
         'float-3': 'float 5s ease-in-out infinite',
         'bounce-x': 'bounce-x 1s ease-in-out infinite',
       },
+      transitionProperty: {
+        'width': 'width'
+      },
+      textDecoration: ['active'],
+      minWidth: {
+        'kanban': '28rem'
+      },
     },
   },
   plugins: [

@@ -9,6 +9,9 @@ Route::get('/', function () {
 
 Route::view('/', 'pages.home');
 
+//admin page route
+Route::view('/admin', 'pages.admin.index');
+
 //Accurate Endpoint
 Route::get('/auth/accurate', [AccurateController::class, 'redirectToAccurate']);
 Route::get('/auth/accurate/callback', [AccurateController::class, 'handleAccurateCallback']);
