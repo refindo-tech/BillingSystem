@@ -10,7 +10,12 @@ Route::get('/', function () {
 Route::view('/', 'pages.home');
 
 //admin page route
-Route::view('/admin', 'pages.admin.index');
+Route::view('/admin', 'pages.admin.index')->name('admin.index');
+Route::view('/admin/server', 'pages.admin.server')->name('admin.server');
+Route::view('/admin/mitra', 'pages.admin.mitra')->name('admin.mitra');
+Route::view('/admin/olt', 'pages.admin.olt')->name('admin.olt');
+Route::view('/admin/odp', 'pages.admin.odp')->name('admin.odp');
+
 
 //Accurate Endpoint
 Route::get('/auth/accurate', [AccurateController::class, 'redirectToAccurate']);
