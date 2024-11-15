@@ -4,17 +4,17 @@ $menuItems = [
     [
         'icon' => 'fa-solid fa-home',
         'title' => 'Dashboard',
-        'link' => '#',
+        'link' => route('admin.index'),
     ],
     [
         'icon' => 'fa-solid fa-server',
         'title' => 'Router',
-        'link' => '#',
+        'link' => route('admin.server'),
     ],
     [
         'icon' => 'fa-solid fa-users',
         'title' => 'Mitra',
-        'link' => '#',
+        'link' => route('admin.mitra')
     ],
     [
         'icon' => 'fa-solid fa-wifi',
@@ -52,12 +52,12 @@ $menuItems = [
     [
         'icon' => 'fa-solid fa-cog',
         'title' => 'OLT',
-        'link' => '#',
+        'link' => route('admin.olt'),
     ],
     [
         'icon' => 'fa-solid fa-cog',
         'title' => 'ODP',
-        'link' => '#',
+        'link' => route('admin.odp'),
     ],
     [
         'icon' => 'fa-solid fa-ticket',
