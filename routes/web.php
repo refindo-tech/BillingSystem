@@ -18,6 +18,7 @@ Route::view('/admin/odp', 'pages.admin.odp')->name('admin.odp');
 Route::view('/admin/voucher/', 'pages.admin.voucher.profile')->name('admin.voucher.index');
 Route::view('/admin/voucher/profile', 'pages.admin.voucher.profile')->name('admin.voucher.profile');
 Route::view('/admin/tiket', 'pages.admin.tiket')->name('admin.tiket');
+Route::view('/admin/transaksi', 'pages.admin.transaksi')->name('admin.transaksi');
 
 //Accurate Endpoint
 Route::get('/auth/accurate', [AccurateController::class, 'redirectToAccurate']);

@@ -78,7 +78,7 @@ $menuItems = [
     [
         'icon' => 'fa-solid fa-shuffle',
         'title' => 'Transaksi',
-        'link' => '#',
+        'link' => route('admin.transaksi'),
     ],
 
     [
