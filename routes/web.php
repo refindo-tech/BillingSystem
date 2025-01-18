@@ -15,7 +15,9 @@ Route::view('/admin/server', 'pages.admin.server')->name('admin.server');
 Route::view('/admin/mitra', 'pages.admin.mitra')->name('admin.mitra');
 Route::view('/admin/olt', 'pages.admin.olt')->name('admin.olt');
 Route::view('/admin/odp', 'pages.admin.odp')->name('admin.odp');
-
+Route::view('/admin/voucher/', 'pages.admin.voucher.profile')->name('admin.voucher.index');
+Route::view('/admin/voucher/profile', 'pages.admin.voucher.profile')->name('admin.voucher.profile');
+Route::view('/admin/tiket', 'pages.admin.tiket')->name('admin.tiket');
 
 //Accurate Endpoint
 Route::get('/auth/accurate', [AccurateController::class, 'redirectToAccurate']);
