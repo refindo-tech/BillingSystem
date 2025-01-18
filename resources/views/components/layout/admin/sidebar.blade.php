@@ -21,7 +21,7 @@ $menuItems = [
         'title' => 'Voucher',
         'link' => '#',
         'children' => [
-            ['title' => 'Profile Voucher', 'link' => '#'],
+            ['title' => 'Profile Voucher', 'link' => route('admin.voucher.profile')],
             ['title' => 'Stok Voucher', 'link' => '#'],
             ['title' => 'Voucher Terjual', 'link' => '#'],
             ['title' => 'Voucher Online', 'link' => '#'],
@@ -62,7 +62,7 @@ $menuItems = [
     [
         'icon' => 'fa-solid fa-ticket',
         'title' => 'Tiket',
-        'link' => '#',
+        'link' => route('admin.tiket'),
     ],
     [
         'icon' => 'fa-solid fa-credit-card',
