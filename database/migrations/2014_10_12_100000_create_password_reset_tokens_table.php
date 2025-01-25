@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tb_perangkat', function (Blueprint $table) {
-            $table->integer('id_perangkat')->primary();
-            $table->text('nama_perangkat');
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tb_perangkat');
+        Schema::dropIfExists('password_reset_tokens');
     }
 };

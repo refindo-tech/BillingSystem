@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_pengumuman', function (Blueprint $table) {
-            $table->integer('id_pengumuman')->primary();
-            $table->text('isi_pengumuman');
+        Schema::create('app_configs', function (Blueprint $table) {
+            $table->id();
+            $table->mediumText('setting');
+            $table->mediumText('value')->nullable();
         });
     }
 
@@ -22,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbl_pengumuman');
+        Schema::dropIfExists('app_configs');
     }
 };

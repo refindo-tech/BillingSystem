@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_notifbayar', function (Blueprint $table) {
-            $table->integer('id_notifbayar')->primary();
-            $table->text('pesan_bayar');
-            $table->engine = 'InnoDB';
-            $table->charset = 'utf8mb4';
-            $table->collation = 'utf8mb4_general_ci';
+        Schema::create('nasreloads', function (Blueprint $table) {
+            $table->string('nasipaddress', 15)->primary();
+            $table->dateTime('reloadtime');
+            $table->timestamps();
         });
     }
 
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbl_notifbayar');
+        Schema::dropIfExists('nasreloads');
     }
 };

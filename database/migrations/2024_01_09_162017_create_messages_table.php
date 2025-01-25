@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_informasi', function (Blueprint $table) {
-            $table->increments('id_informasi');
-            $table->string('judul_informasi', 255);
-            $table->text('isi_informasi');
+        Schema::create('messages', function (Blueprint $table) {
+            $table->id();
+            $table->string('from_user', 32);
+            $table->string('to_user', 32);
+            $table->string('title', 60);
+            $table->mediumText('message');
+            $table->enum('status', [0, 1])->default(0);
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbl_informasi');
+        Schema::dropIfExists('messages');
     }
 };

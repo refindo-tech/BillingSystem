@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_token', function (Blueprint $table) {
-            $table->integer('id_token')->primary();
-            $table->string('token', 255);
+        Schema::create('radusergroups', function (Blueprint $table) {
+            $table->id();
+            $table->string('username', 64)->default('')->index();
+            $table->string('groupname', 64)->default('');
+            $table->integer('priority')->default(1);
+            $table->timestamps();
         });
     }
 
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbl_token');
+        Schema::dropIfExists('radusergroups');
     }
 };
