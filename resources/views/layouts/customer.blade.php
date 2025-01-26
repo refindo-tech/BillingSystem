@@ -1,4 +1,4 @@
-@section('active-menu', $activeMenu)
+@section('active-menu', @$activeMenu)
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>NETPLUS Connection - {{ $title }}</title>
+    <title>LaravelNuxBill - {{ @$title }}</title>
     <link rel="icon" href="{{ asset('assets/media/logos/favicon.ico') }}" type="image/x-icon" />
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,7 +22,7 @@
         <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
             @include('partials.header')
             <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
-                @include('partials.admin.sidebar')
+                @include('partials.customer.sidebar')
                 <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
                     <div class="d-flex flex-column flex-column-fluid">
                         <x-app.toolbar :title="$title">
