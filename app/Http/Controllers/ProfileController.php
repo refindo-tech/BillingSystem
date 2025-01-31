@@ -16,17 +16,25 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        //if user_type is Admin
+        //if $request->user()->user_type is null,
+
+        if (is_null($request->user()->user_type)) {
+            return view('profile.edit', [
+                'user' => $request->user(),
+            ]);
+        }
 
         if ($request->user()->user_type->value == 'Admin') {
             return view('profile.edit-admin', [
                 'user' => $request->user(),
             ]);
+        } else {
+            return view('profile.edit', [
+                'user' => $request->user(),
+            ]);
         }
 
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        
     }
 
     /**

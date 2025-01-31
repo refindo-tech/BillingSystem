@@ -173,7 +173,7 @@
                             <div class="px-3 menu-content d-flex align-items-center">
                                 <!--begin::Avatar-->
                                 <div class="symbol symbol-50px me-5">
-                                    <img alt="Logo" src="assets/media/avatars/300-1.jpg" />
+                                    <img alt="Logo" src="{{ asset('assets/media/avatars/300-1.jpg') }}" />
                                 </div>
                                 <!--end::Avatar-->
                                 <!--begin::Username-->
