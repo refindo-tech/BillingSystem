@@ -104,6 +104,8 @@ Route::name('admin:')->group(function () {
         Route::middleware('admin')->group(function () {
             Route::get('setting/xendit', [AdminSettingController::class, 'xendit'])->name('setting.xendit');
             Route::put('setting/xendit', [AdminSettingController::class, 'updateXendit'])->name('setting.xendit.update');
+            Route::get('setting/tripay', [AdminSettingController::class, 'tripay'])->name('setting.tripay');
+            Route::put('setting/tripay', [AdminSettingController::class, 'updateTripay'])->name('setting.tripay.update');
             Route::get('setting/general', [AdminSettingController::class, 'general'])->name('setting.general');
             Route::put('setting/general', [AdminSettingController::class, 'updateGeneral'])->name('setting.general.update');
             Route::get('setting/localisation', [AdminSettingController::class, 'localisation'])->name('setting.localisation');

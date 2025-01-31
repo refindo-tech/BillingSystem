@@ -220,6 +220,12 @@ return [
                             'icon' => 'two-credit-cart',
                         ],
                         [
+                            'name' => 'setting.tripay',
+                            'title' => 'Tripay Payment Gateway',
+                            'url' => '/admin/setting/tripay',
+                            'icon' => 'two-credit-cart',
+                        ],
+                        [
                             'name' => 'setting.general',
                             'title' => 'General Settings',
                             'url' => '/admin/setting/general',
