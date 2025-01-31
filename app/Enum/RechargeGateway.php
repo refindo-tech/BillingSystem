@@ -8,4 +8,5 @@ enum RechargeGateway: string
     case VOUCHER = 'Voucher';
     case USER = 'User';
     case XENDIT = 'Xendit';
+    case TRIPAY = 'TriPay';
 }

@@ -70,4 +70,74 @@ return [
             ],
         ],
     ],
+    'tripay' => [
+        'base_url' => 'https://tripay.co.id/api/', // Production base URL
+        'sandbox_base_url' => 'https://tripay.co.id/sandbox/api/', // Sandbox base URL
+        'channels' => [
+            [
+                'id' => 'BRIVA',
+                'name' => 'BRI Virtual Account',
+            ],
+            [
+                'id' => 'BNIVA',
+                'name' => 'BNI Virtual Account',
+            ],
+            [
+                'id' => 'BCAVA',
+                'name' => 'BCA Virtual Account',
+            ],
+            [
+                'id' => 'MANDIRIVA',
+                'name' => 'Mandiri Virtual Account',
+            ],
+            [
+                'id' => 'MYBVA',
+                'name' => 'Maybank Virtual Account',
+            ],
+            [
+                'id' => 'PERMATAVA',
+                'name' => 'Permata Virtual Account',
+            ],
+            [
+                'id' => 'SAMPERNA',
+                'name' => 'Sahabat Sampoerna Virtual Account',
+            ],
+            [
+                'id' => 'MUAMALATVA',
+                'name' => 'Muamalat Virtual Account',
+            ],
+            [
+                'id' => 'SINARMASVA',
+                'name' => 'Sinarmas Virtual Account',
+            ],
+            [
+                'id' => 'ALFAMART',
+                'name' => 'Alfamart',
+            ],
+            [
+                'id' => 'INDOMARET',
+                'name' => 'Indomaret',
+            ],
+            [
+                'id' => 'QRIS',
+                'name' => 'QRIS',
+            ],
+            [
+                'id' => 'OVO',
+                'name' => 'OVO',
+            ],
+            [
+                'id' => 'DANA',
+                'name' => 'DANA',
+            ],
+            [
+                'id' => 'LINKAJA',
+                'name' => 'LinkAja',
+            ],
+            [
+                'id' => 'SHOPEEPAY',
+                'name' => 'ShopeePay',
+            ],
+        ],
+    ],
 ];

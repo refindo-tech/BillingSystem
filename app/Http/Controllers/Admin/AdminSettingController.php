@@ -8,9 +8,11 @@ use App\Enum\VoucherFormat;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Setting\SettingUserRequest;
 use App\Http\Requests\Admin\Setting\SettingXenditRequest;
+use App\Http\Requests\Admin\Setting\SettingTripayRequest;
 use App\Models\User;
 use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
+use App\Support\Facades\Tripay;
 use Illuminate\Http\Request;
 
 class AdminSettingController extends Controller
@@ -23,8 +25,9 @@ class AdminSettingController extends Controller
             'xendit_verification_token' => Config::get('xendit_verification_token'),
             'xendit_channels' => Config::get('xendit_channels') ? explode(',', Config::get('xendit_channels')) : [],
         ];
+        $activeGateway = Config::get('active_payment_gateway');
 
-        return view('admin.setting.xendit', compact('channels', 'xendit'));
+        return view('admin.setting.xendit', compact('channels', 'xendit', 'activeGateway'));
     }
 
     public function updateXendit(SettingXenditRequest $request)
@@ -32,6 +35,38 @@ class AdminSettingController extends Controller
         Xendit::updateConfig($request->validated());
 
         return redirect()->back()->with('success', 'Xendit setting has been updated');
+    }
+
+    public function tripay()
+    {
+        $channels = config('payment.tripay.channels');
+        $tripay = [
+            'tripay_api_key'      => Config::get('tripay_api_key'),
+            'tripay_private_key'  => Config::get('tripay_private_key'),
+            'tripay_merchant_code'=> Config::get('tripay_merchant_code'),
+            'tripay_channels'     => Config::get('tripay_channels') ? explode(',', Config::get('tripay_channels')) : [],
+        ];
+        $activeGateway = Config::get('active_payment_gateway');
+
+        return view('admin.setting.tripay', compact('channels', 'tripay', 'activeGateway'));
+    }
+
+    public function updateTripay(SettingTripayRequest $request)
+    {
+        Tripay::updateConfig($request->validated());
+
+        return redirect()->back()->with('success', 'Tripay setting has been updated');
+    }
+
+    public function setActiveGateway(Request $request)
+    {
+        $request->validate([
+            'gateway' => 'required|in:xendit,tripay',
+        ]);
+
+        Config::set('active_payment_gateway', $request->gateway);
+
+        return redirect()->back()->with('success', ucfirst($request->gateway) . ' has been set as the active payment gateway');
     }
 
     public function general()
@@ -53,7 +88,6 @@ class AdminSettingController extends Controller
         }
 
         return redirect()->back()->with('success', 'General setting has been updated');
-
     }
 
     public function localisation()

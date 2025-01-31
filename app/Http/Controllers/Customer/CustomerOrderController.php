@@ -9,34 +9,57 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentGateway;
 use App\Models\Plan;
 use App\Models\Router;
+use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
+use App\Support\Facades\Tripay;
+
+use Illuminate\Support\Collection;
 
 class CustomerOrderController extends Controller
 {
     public function index()
     {
         $routers = Router::whereEnabled(true)->get();
-
         return view('customer.order.list', compact('routers'));
     }
 
     public function buy(Plan $plan)
     {
         $user = auth()->user();
+
         if (strpos($user->email, '@') === false) {
             return redirect()->route('customer:profile.edit')->with('error', 'Please enter your email address');
         }
-        Xendit::validateConfig();
+
+        // Get active payment gateway
+        $activeGateway = Config::get('active_payment_gateway');
+        //if empty, set default to xendit
+        if (empty($activeGateway)) {
+            $activeGateway = 'tripay';
+        }
+
+        // Validate selected payment gateway config
+        if ($activeGateway === 'xendit') {
+            Xendit::validateConfig();
+        } elseif ($activeGateway === 'tripay') {
+            Tripay::validateConfig();
+        } else {
+            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        }
+
+        // Check for existing unpaid transaction
         $order = PaymentGateway::where('username', $user->username)
             ->where('status', PaymentGatewayStatus::UNPAID)
             ->first();
+
         if ($order && $order->pg_url_payment) {
-            return redirect()->route('customer:order.detail', $order)->with('error', 'You already have unpaid transaction, cancel it or pay it');
+            return redirect()->route('customer:order.detail', $order)->with('error', 'You already have an unpaid transaction. Please cancel or pay it.');
         }
+
         if (empty($order)) {
             $order = PaymentGateway::create([
                 'username' => $user->username,
-                'gateway' => 'xendit',
+                'gateway' => $activeGateway,
                 'plan_id' => $plan->id,
                 'plan_name' => $plan->name,
                 'router_id' => $plan->router->id,
@@ -47,7 +70,7 @@ class CustomerOrderController extends Controller
         } else {
             $order->update([
                 'username' => $user->username,
-                'gateway' => 'xendit',
+                'gateway' => $activeGateway,
                 'plan_id' => $plan->id,
                 'plan_name' => $plan->name,
                 'router_id' => $plan->router->id,
@@ -57,7 +80,10 @@ class CustomerOrderController extends Controller
             ]);
         }
 
-        return Xendit::createTransaction($order, $user);
+        // Process transaction based on active gateway
+        return $activeGateway === 'xendit' 
+            ? Xendit::createTransaction($order, $user)
+            : Tripay::createTransaction($order, $user);
     }
 
     public function detail(PaymentGateway $order)
@@ -71,9 +97,18 @@ class CustomerOrderController extends Controller
 
     public function check(PaymentGateway $order)
     {
-        Xendit::validateConfig();
+        $activeGateway = $order->gateway;
+
         try {
-            Xendit::getStatus($order, auth()->user());
+            if ($activeGateway === 'xendit') {
+                Xendit::validateConfig();
+                Xendit::getStatus($order, auth()->user()->customer);
+            } elseif ($activeGateway === 'tripay') {
+                Tripay::validateConfig();
+                Tripay::getStatus($order, auth()->user()->customer);
+            } else {
+                throw new AppException('Invalid payment gateway.');
+            }
 
             return redirect()->route('customer:order.detail', $order)->with('success', 'Transaction has been paid');
         } catch (AppException $e) {
