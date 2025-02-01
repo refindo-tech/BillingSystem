@@ -99,8 +99,8 @@ return [
                 'name' => 'Permata Virtual Account',
             ],
             [
-                'id' => 'SAMPERNA',
-                'name' => 'Sahabat Sampoerna Virtual Account',
+                'id' => 'CIMBVA',
+                'name' => 'CIMB Niaga Virtual Account',
             ],
             [
                 'id' => 'MUAMALATVA',
@@ -113,6 +113,10 @@ return [
             [
                 'id' => 'ALFAMART',
                 'name' => 'Alfamart',
+            ],
+            [
+                'id' => 'ALFAMIDI',
+                'name' => 'Alfamidi',
             ],
             [
                 'id' => 'INDOMARET',
@@ -129,10 +133,6 @@ return [
             [
                 'id' => 'DANA',
                 'name' => 'DANA',
-            ],
-            [
-                'id' => 'LINKAJA',
-                'name' => 'LinkAja',
             ],
             [
                 'id' => 'SHOPEEPAY',

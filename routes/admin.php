@@ -102,6 +102,8 @@ Route::name('admin:')->group(function () {
 
         // SETTING #
         Route::middleware('admin')->group(function () {
+            Route::get('setting/payment-gateway', [AdminSettingController::class, 'paymentGateway'])->name('setting.payment-gateway');
+            Route::put('setting/payment-gateway', [AdminSettingController::class, 'setActiveGateway'])->name('setting.payment-gateway.set-active');
             Route::get('setting/xendit', [AdminSettingController::class, 'xendit'])->name('setting.xendit');
             Route::put('setting/xendit', [AdminSettingController::class, 'updateXendit'])->name('setting.xendit.update');
             Route::get('setting/tripay', [AdminSettingController::class, 'tripay'])->name('setting.tripay');

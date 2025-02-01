@@ -214,15 +214,9 @@ return [
                     'icon' => 'setting-3',
                     'sub' => [
                         [
-                            'name' => 'setting.xendit',
+                            'name' => 'setting.payment-gateway',
                             'title' => 'Payment Gateway',
-                            'url' => '/admin/setting/xendit',
-                            'icon' => 'two-credit-cart',
-                        ],
-                        [
-                            'name' => 'setting.tripay',
-                            'title' => 'Tripay Payment Gateway',
-                            'url' => '/admin/setting/tripay',
+                            'url' => '/admin/setting/payment-gateway',
                             'icon' => 'two-credit-cart',
                         ],
                         [
