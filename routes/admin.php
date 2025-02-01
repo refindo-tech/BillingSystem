@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AdminPrepaidController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\AdminTicketController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -91,6 +92,12 @@ Route::name('admin:')->group(function () {
         Route::delete('service/pppoe/{pppoe}', [AdminServiceController::class, 'destroyPppoe'])->name('service.pppoe.destroy');
         Route::post('service/pppoe', [AdminServiceController::class, 'storePppoe'])->name('service.pppoe.store');
         Route::patch('service/pppoe/{pppoe}', [AdminServiceController::class, 'updatePppoe'])->name('service.pppoe.update');
+
+
+        // TICKET #
+        Route::resource('ticket', AdminTicketController::class);
+        Route::get('ticket/{ticket}/close', [AdminTicketController::class, 'close'])->name('ticket.close');
+
 
         // STATIC PAGES #
         Route::get('page/{title}', [AdminPageController::class, 'edit'])->name('page.edit');

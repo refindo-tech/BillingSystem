@@ -137,6 +137,29 @@ return [
             ],
         ],
         [
+            'items' => [
+                [
+                    'name' => 'ticket',
+                    'title' => 'Tickets',
+                    'icon' => 'document',
+                    'sub' => [
+                        [
+                            'name' => 'ticket.create',
+                            'title' => 'Add New Ticket',
+                            'url' => '/admin/ticket/create',
+                            'icon' => 'add-item',
+                        ],
+                        [
+                            'name' => 'ticket.index',
+                            'title' => 'Ticket List',
+                            'icon' => 'questionnaire-tablet',
+                            'url' => '/admin/ticket',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        [
             'group' => 'SYSTEM',
             'middleware' => 'admin',
             'items' => [
@@ -288,6 +311,12 @@ return [
                     'icon' => 'questionnaire-tablet',
                     'url' => '/customer/history/voucher',
                 ],
+                [
+                    'name' => 'ticket.submit',
+                    'title' => 'Ajukan Tiket Bantuan',
+                    'icon' => 'message-notif',
+                    'url' => '/customer/ticket',
+                ]
             ],
         ],
     ],
