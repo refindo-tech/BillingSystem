@@ -93,6 +93,9 @@ class PaymentXenditRepository
         if ($result['status'] == 'PENDING') {
             throw new AppException('Transaction still unpaid');
         }
+
+        
+
         if (in_array($result['status'], ['PAID', 'SETTLED']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
                 Package::rechargeUser($user, $trx->router, $trx->plan, RechargeGateway::XENDIT, $result['payment_channel']);
@@ -104,6 +107,7 @@ class PaymentXenditRepository
             $trx->payment_channel = $result['payment_channel'];
             $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['updated']));
             $trx->status = 2;
+
             $trx->save();
 
             return true;

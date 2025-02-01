@@ -16,6 +16,9 @@ class Package
 {
     public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel)
     {
+
+        
+
         $date_now = now();
         $userRecharge = UserRecharge::where([
             'customer_id' => $customer->id,
@@ -28,6 +31,7 @@ class Package
             ValidityUnit::MINS => now()->addMinutes($plan->validity),
             default => throw new PackageRechargeException('Invalid validity unit')
         };
+
 
         if ($plan->type == PlanType::HOTSPOT) {
             if ($userRecharge) {

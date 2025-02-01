@@ -12,6 +12,7 @@ use App\Models\Router;
 use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
+use App\Models\Customer;
 
 use Illuminate\Support\Collection;
 
@@ -81,7 +82,7 @@ class CustomerOrderController extends Controller
         }
 
         // Process transaction based on active gateway
-        return $activeGateway === 'xendit' 
+        return $activeGateway === 'xendit'
             ? Xendit::createTransaction($order, $user)
             : Tripay::createTransaction($order, $user);
     }
@@ -97,15 +98,20 @@ class CustomerOrderController extends Controller
 
     public function check(PaymentGateway $order)
     {
-        $activeGateway = $order->gateway;
+        $customer = Customer::find(auth()->id()); // This should be a Customer model instance
+        $customer = auth()->user(); // This should be a Customer model instance
+        if (!$customer instanceof Customer) {
+            throw new AppException('Authenticated user is not a customer');
+        }
 
         try {
-            if ($activeGateway === 'xendit') {
+            if ($order->gateway === 'xendit') {
                 Xendit::validateConfig();
-                Xendit::getStatus($order, auth()->user()->customer);
-            } elseif ($activeGateway === 'tripay') {
+                Xendit::getStatus($order, $customer);
+                
+            } elseif ($order->gateway === 'tripay') {
                 Tripay::validateConfig();
-                Tripay::getStatus($order, auth()->user()->customer);
+                Tripay::getStatus($order, $customer);
             } else {
                 throw new AppException('Invalid payment gateway.');
             }
@@ -115,6 +121,7 @@ class CustomerOrderController extends Controller
             return redirect()->route('customer:order.detail', $order)->with('error', $e->getMessage());
         }
     }
+
 
     public function cancel(PaymentGateway $order)
     {
