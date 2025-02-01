@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\CustomerVoucherController;
+use App\Http\Controllers\Customer\CustomerTicketController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,7 +42,17 @@ Route::middleware('auth')->group(function () {
         Route::get('order/{order}/check', [CustomerOrderController::class, 'check'])->name('order.check');
         Route::get('order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel');
         Route::get('/history/order', [CustomerOrderController::class, 'history'])->name('history.order');
+
+        // TICKET #
+        Route::get('/ticket', [CustomerTicketController::class, 'index'])->name('ticket.index');
+        Route::get('/ticket/create', [CustomerTicketController::class, 'create'])->name('ticket.create');
+        Route::post('/ticket', [CustomerTicketController::class, 'store'])->name('ticket.store');
+        Route::get('/ticket/{ticket}', [CustomerTicketController::class, 'show'])->name('ticket.show');
+        Route::get('/ticket/{ticket}/edit', [CustomerTicketController::class, 'edit'])->name('ticket.edit');
+        Route::put('/ticket/{ticket}', [CustomerTicketController::class, 'update'])->name('ticket.update');
+        Route::delete('/ticket/{ticket}', [CustomerTicketController::class, 'destroy'])->name('ticket.destroy');
+
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
