@@ -15,8 +15,8 @@ class UserSeeder extends Seeder
     {
         User::create([
             'fullname' => 'Administrator',
-            'username' => 'hdiop',
-            'password' => bcrypt('admin123'),
+            'username' => 'admin',
+            'password' => bcrypt('admin1234'),
             'user_type' => UserType::ADMIN,
         ]);
     }
