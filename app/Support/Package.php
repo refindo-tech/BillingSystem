@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Enum\PlanType;
 use App\Enum\RechargeGateway;
 use App\Enum\ValidityUnit;
+use App\Enum\ValidityCycle;
 use App\Exceptions\PackageRechargeException;
 use App\Models\Customer;
 use App\Models\Plan;
@@ -14,7 +15,7 @@ use App\Models\UserRecharge;
 
 class Package
 {
-    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null)
+    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null, $validityCycle = null, $expiredAt = null)
     {
 
         if ($serviceNumber == null) {
@@ -31,13 +32,16 @@ class Package
             'customer_id' => $customer->id,
             'router_id' => $mikrotik->id,
         ])->first();
-        $date_exp = match ($plan->validity_unit) {
+
+        $date_exp = $expiredAt ?? match ($plan->validity_unit) {
             ValidityUnit::MONTHS => now()->addMonths($plan->validity),
             ValidityUnit::DAYS => now()->addDays($plan->validity),
             ValidityUnit::HRS => now()->addHours($plan->validity),
             ValidityUnit::MINS => now()->addMinutes($plan->validity),
             default => throw new PackageRechargeException('Invalid validity unit')
         };
+
+        
 
 
         if ($plan->type == PlanType::HOTSPOT) {
@@ -49,14 +53,17 @@ class Package
                     Mikrotik::addHotspotUser($client, $plan, $customer);
                 }
 
+                //extend the date if it's the same plan.
                 if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
-                    // if it same internet plan, expired will extend
-                    $date_exp = match ($plan->validity_unit) {
-                        ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
-                        ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
-                        ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
-                        ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
-                        default => throw new PackageRechargeException('Invalid validity unit')
+                    $date_exp = match ($validityCycle) {
+                        ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
+                        default => match ($plan->validity_unit) {
+                            ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
+                            ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
+                            ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
+                            ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
+                            default => throw new PackageRechargeException('Invalid validity unit')
+                        }
                     };
                 }
 
@@ -74,7 +81,7 @@ class Package
                 $userRecharge->save();
 
                 Transaction::create([
-                    'invoice' => 'INV-'.Package::_raid(5),
+                    'invoice' => 'INV-' . Package::_raid(5),
                     'username' => $customer->username,
                     'plan_name' => $plan->name,
                     'price' => $plan->price,
@@ -104,10 +111,11 @@ class Package
                     'router_id' => $mikrotik->id,
                     'type' => PlanType::HOTSPOT,
                     'service_number' => $serviceNumber,
+                    'validity_cycle' => $validityCycle,
                 ]);
 
                 Transaction::create([
-                    'invoice' => 'INV-'.Package::_raid(5),
+                    'invoice' => 'INV-' . Package::_raid(5),
                     'username' => $customer->username,
                     'plan_name' => $plan->name,
                     'price' => $plan->price,
@@ -118,7 +126,7 @@ class Package
                     'type' => PlanType::HOTSPOT,
                 ]);
             }
-        // end if type hotspot
+            // end if type hotspot
         } else {
             if ($userRecharge) {
                 if ($plan->is_radius) {
@@ -130,12 +138,15 @@ class Package
 
                 if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
                     // if it same internet plan, extend the expiration
-                    $date_exp = match ($plan->validity_unit) {
-                        ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
-                        ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
-                        ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
-                        ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
-                        default => throw new PackageRechargeException('Invalid validity unit')
+                    $date_exp = match ($validityCycle) {
+                        ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
+                        default => match ($plan->validity_unit) {
+                            ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
+                            ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
+                            ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
+                            ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
+                            default => throw new PackageRechargeException('Invalid validity unit')
+                        }
                     };
                 }
 
@@ -153,7 +164,7 @@ class Package
                 $userRecharge->save();
 
                 Transaction::create([
-                    'invoice' => 'INV-'.Package::_raid(5),
+                    'invoice' => 'INV-' . Package::_raid(5),
                     'username' => $customer->username,
                     'plan_name' => $plan->name,
                     'price' => $plan->price,
@@ -184,10 +195,11 @@ class Package
                     'router_id' => $mikrotik->id,
                     'type' => PlanType::PPPOE,
                     'service_number' => $serviceNumber,
+                    'validity_cycle' => $validityCycle,
                 ]);
 
                 Transaction::create([
-                    'invoice' => 'INV-'.Package::_raid(5),
+                    'invoice' => 'INV-' . Package::_raid(5),
                     'username' => $customer->username,
                     'plan_name' => $plan->name,
                     'price' => $plan->price,
@@ -209,7 +221,7 @@ class Package
     {
         /** @var Router $mikrotik */
         $mikrotik = $userRecharge->router;
-        if ($plan->router->id != $userRecharge->router_id && ! $plan->is_radius) {
+        if ($plan->router->id != $userRecharge->router_id && !$plan->is_radius) {
             $mikrotik = $plan->router;
         }
         $client = static::resetCustomerMikrotik($mikrotik, $customer);

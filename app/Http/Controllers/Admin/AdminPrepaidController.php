@@ -8,6 +8,8 @@ use App\Enum\PlanType;
 use App\Enum\RechargeGateway;
 use App\Enum\VoucherFormat;
 use App\Enum\VoucherStatus;
+use App\Enum\ValidityCycle;
+use App\Enum\ValidityUnit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidVoucherRequest;
@@ -46,8 +48,10 @@ class AdminPrepaidController extends Controller
             
         ]);
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
+        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType'));
+        $defaultValidityCycle = ValidityCycle::PROFILE;
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'validityCycles', 'defaultValidityCycle'));
     }
 
     public function rechargeUser(Customer $user)
@@ -74,8 +78,10 @@ class AdminPrepaidController extends Controller
         $defaultPlanType = $user->plan->type;
         $defaultRouterId = $user->plan->router_id;
         $serviceNumber = $user->service_number;
+        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
+        $defaultValidityCycle = $user->validity_cycle;
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle'));
     }
 
     public function storeUser(PrepaidUserRequest $request)
@@ -83,7 +89,7 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($request->customer_id);
         $router = Router::findOrFail($request->router_id);
         $plan = Plan::findOrFail($request->plan_id);
-        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number);
+        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
 
@@ -249,5 +255,33 @@ class AdminPrepaidController extends Controller
         
         return response()->json($serviceNumber);
 
+    }
+
+    public function expiredAt(Request $request)
+    {
+        if ($request->has('validity_cycle')) {
+            $validityCycle = ValidityCycle::from($request->validity_cycle);
+            $activeAt = $request->active_at;
+            $expiredAt = null;
+            if ($validityCycle == ValidityCycle::PROFILE) {
+                $plan = Plan::findOrFail($request->plan_id);
+                $expiredAt = match ($plan->validity_unit) {
+                    ValidityUnit::DAYS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' days')),
+                    ValidityUnit::MONTHS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' months')),
+                    ValidityUnit::HRS => date('T-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' hours')),
+                    ValidityUnit::MINS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' minutes')),
+                };
+            } elseif ($validityCycle == ValidityCycle::MONTHLY) {
+                $expiredAt = date('Y-m-d H:i:s', strtotime($activeAt . ' +1 month'));
+                $expiredAt = date('Y-m-04 H:i:s', strtotime($expiredAt));
+
+            } elseif ($validityCycle == ValidityCycle::FIXED) {
+                $expiredAt = date('Y-m-d H:i:s', strtotime($activeAt . ' +1 month'));
+            }
+        } else {
+            $expiredAt = 'aaa';
+        }
+
+        return response()->json($expiredAt);
     }
 }

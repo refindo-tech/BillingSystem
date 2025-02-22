@@ -25,11 +25,16 @@
                     <x-form.group.select name="router_id" label="Routers" :options="[]" required
                                                           :value="@$user['router_id']??@$defaultRouterId" :readonly="$mode == 'edit'"/>
 
-                    <x-form.group.select name="plan_id" label="Service Plan" :options="[]" required
-                        :value="@$user['plan_id']" />
+                    <x-form.group.select name="plan_id" label="Service Plan" :options="[]" required :value="@$user['plan_id']" />
+                   
+                    <x-form.group.select name="validity_cycle" label="Siklus Layanan" :options="$validityCycles" required tooltip=" Profile: Mengikuti durasi dasar masing-masing paket. Tetap: Tenggat kadaluarsa mengikuti tanggal aktivasi paket. Bulanan: Selalu berakhir di tanggal yang sama, yaitu tiap tanggal 4 tiap bulan."/>
+
                     @if($mode == 'edit')
-                        <x-form.group.input :disabled="true" name="created_at" type="datetime-local" :value="@$user['created_at']->format('Y-m-d H:i')" label="Created On"/>
-                        <x-form.group.input name="expired_at" type="datetime-local" required :value="@$user['created_at']->format('Y-m-d H:i')" label="Expires On" />
+                        <x-form.group.input :disabled="true" name="Tanggal " type="datetime-local" :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Activation Date" />
+                        <x-form.group.input name="expired_at" type="datetime-local" required :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Expired Date" />
+                    @else
+                        <x-form.group.input name="active_at" type="datetime-local" required label="Activation Date" value="{{ now()->format('Y-m-d\TH:i') }}"/>
+                        <x-form.group.input name="expired_at" type="datetime-local" required label="Expired Date" readonly/>
                     @endif
 
                     <div class="row py-5">
@@ -103,9 +108,19 @@
                     fetch("{{ route('admin:prepaid.user.service-number') }}?customer_id=" + customerId)
                         .then(res => res.json())
                         .then(res => {
-                            console.log(res)
                             $('[name="service_number"]').val(res);
                             
+                        });
+                },
+                updateExpiredAt() {
+                    const validityCycle = $('[name="validity_cycle"]').val();
+                    const activeAt = $('[name="active_at"]').val();
+                    const planId = $('[name="plan_id"]').val();
+                    fetch("{{ route('admin:prepaid.user.expired-at') }}?validity_cycle=" + validityCycle + "&active_at=" + activeAt + "&plan_id=" + planId)
+                        .then(res => res.json())
+                        .then(res => {
+                            console.log(res)
+                            $('[name="expired_at"]').val(res);
                         });
                 },
                 init() {
@@ -117,8 +132,10 @@
                         if (!$('[name="service_number"]').prop('readonly')) {
                             this.updateServiceNumber(e.target.value);
                         }
-                        
                     })
+                    $('[name="validity_cycle"], [name="active_at"], [name="plan_id"]').on('change', () => {
+                        this.updateExpiredAt();
+                    });
                 },
             })
         </script>

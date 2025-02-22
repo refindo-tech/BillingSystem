@@ -36,7 +36,12 @@ class CustomerDataTable extends DataTable
             })
             ->editColumn('created_at', fn ($row) => Lang::dateTimeFormat($row->created_at))
             ->rawColumns(['action', 'recharge.is_active'])
-            ->setRowId('id');
+            ->setRowId('id')
+            //customize id column, add prefix, if id is 1 then 00001, if id 11 then 00011, if id is more than the prefix then ignore it
+            ->editColumn('id', function ($row) {
+                $prefix = '00000';
+                return (strlen($prefix) > strlen($row->id) ? substr($prefix, 0, strlen($prefix) - strlen($row->id)) : '') . $row->id;
+            });
     }
 
     /**
@@ -72,6 +77,7 @@ class CustomerDataTable extends DataTable
     public function getColumns(): array
     {
         return [
+            Column::make('id')->title('ID Pelanggan'),
             Column::make('username'),
             Column::make('fullname'),
             Column::make('phonenumber'),
