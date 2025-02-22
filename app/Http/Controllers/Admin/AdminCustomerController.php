@@ -136,4 +136,7 @@ class AdminCustomerController extends Controller
 
         return redirect()->back()->with('success', __('Success deactivate customer to Mikrotik'));
     }
+
+    
+
 }

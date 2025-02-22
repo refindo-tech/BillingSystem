@@ -69,6 +69,7 @@ class UserRechargeDataTable extends DataTable
     {
         return [
             Column::make('id')->hidden(),
+            Column::make('service_number')->title('Nomor Layanan'),
             Column::make('username'),
             Column::make('plan.name'),
             Column::make('plan.type'),

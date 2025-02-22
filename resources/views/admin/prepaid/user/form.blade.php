@@ -20,6 +20,7 @@
                     @endif
                     <x-form.group.select name="customer_id" label="Select Account" :options="$customers" required
                         :value="@$user['customer_id']" :readonly="$mode == 'edit'"/>
+                    <x-form.group.input name="service_number" label="Nomor Layanan" required :readonly="$mode == 'edit'" tooltip="2 digit tahun + ID pelanggan + 2 digit urutan layanan by pelanggan." :value="@$user['service_number']??''"/>
                     <x-form.group.select name="plan_type" label="Type" :options="$planTypes" required :value="@$user['plan_type'] ?? @$defaultPlanType?->value" :readonly="$mode == 'edit'"/>
                     <x-form.group.select name="router_id" label="Routers" :options="[]" required
                                                           :value="@$user['router_id']??@$defaultRouterId" :readonly="$mode == 'edit'"/>
@@ -97,14 +98,28 @@
                             }).val(defaultValue).trigger('change')
                         })
                 },
+                updateServiceNumber(customerId) {
+                    console.log(customerId)
+                    fetch("{{ route('admin:prepaid.user.service-number') }}?customer_id=" + customerId)
+                        .then(res => res.json())
+                        .then(res => {
+                            console.log(res)
+                            $('[name="service_number"]').val(res);
+                            
+                        });
+                },
                 init() {
                     this.getRouter($('[name="plan_type"]').val(), @json(@$defaultRouterId ?? ''))
                     $('[name="plan_type"]').on('change', (e) => {
                         this.getRouter(e.target.value)
                     })
-
+                    $('[name="customer_id"]').on('change', (e) => {
+                        if (!$('[name="service_number"]').prop('readonly')) {
+                            this.updateServiceNumber(e.target.value);
+                        }
+                        
+                    })
                 },
-
             })
         </script>
     @endpush

@@ -14,10 +14,17 @@ use App\Models\UserRecharge;
 
 class Package
 {
-    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel)
+    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null)
     {
 
-        
+        if ($serviceNumber == null) {
+            $prefix = '00000';
+            $serviceNumber = date('y');
+            $serviceNumber .= (strlen($prefix) > strlen($customer->id) ? substr($prefix, 0, strlen($prefix) - strlen($customer->id)) : '') . $customer->id;
+            $prefix2 = '00';
+            $serviceCount = UserRecharge::where('customer_id', $customer->id)->count() + 1;
+            $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
+        }
 
         $date_now = now();
         $userRecharge = UserRecharge::where([
@@ -63,6 +70,7 @@ class Package
                 $userRecharge->method = "$gateway->value - $channel";
                 $userRecharge->router_id = $mikrotik->id;
                 $userRecharge->type = PlanType::HOTSPOT;
+                $userRecharge->service_number = $serviceNumber;
                 $userRecharge->save();
 
                 Transaction::create([
@@ -95,6 +103,7 @@ class Package
                     'method' => "$gateway->value - $channel",
                     'router_id' => $mikrotik->id,
                     'type' => PlanType::HOTSPOT,
+                    'service_number' => $serviceNumber,
                 ]);
 
                 Transaction::create([
@@ -140,6 +149,7 @@ class Package
                 $userRecharge->method = "$gateway->value - $channel";
                 $userRecharge->router_id = $mikrotik->id;
                 $userRecharge->type = PlanType::PPPOE;
+                $userRecharge->service_number = $serviceNumber;
                 $userRecharge->save();
 
                 Transaction::create([
@@ -173,6 +183,7 @@ class Package
                     'method' => "$gateway->value - $channel",
                     'router_id' => $mikrotik->id,
                     'type' => PlanType::PPPOE,
+                    'service_number' => $serviceNumber,
                 ]);
 
                 Transaction::create([

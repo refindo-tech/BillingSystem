@@ -38,12 +38,15 @@ class AdminPrepaidController extends Controller
     public function createUser()
     {
         $mode = 'add';
+        
+        $prefix = '00000';
         $customers = Customer::all()->mapWithKeys(fn ($customer) => [
-            $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
+
+            $customer->id => (strlen($prefix) > strlen($customer->id) ? substr($prefix, 0, strlen($prefix) - strlen($customer->id)) : '') . $customer->id . ' - ' . $customer->fullname . ' - ' . $customer->email,
+            
         ]);
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
-
         return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType'));
     }
 
@@ -66,9 +69,11 @@ class AdminPrepaidController extends Controller
         $customers = Customer::where('id', $user->customer_id)->get()->mapWithKeys(fn ($customer) => [
             $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
         ]);
+        
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $defaultPlanType = $user->plan->type;
         $defaultRouterId = $user->plan->router_id;
+        $serviceNumber = $user->service_number;
 
         return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId'));
     }
@@ -78,7 +83,7 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($request->customer_id);
         $router = Router::findOrFail($request->router_id);
         $plan = Plan::findOrFail($request->plan_id);
-        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname);
+        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
 
@@ -226,5 +231,23 @@ class AdminPrepaidController extends Controller
         Log::put('Refill Account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.invoice.show', $invoice);
+    }
+
+    public function serviceNumber(Request $request)
+    {
+        
+        if ($request->has('customer_id')) {
+            $prefix = '00000';
+            $serviceNumber = date('y');
+            $serviceNumber .= (strlen($prefix) > strlen($request->customer_id) ? substr($prefix, 0, strlen($prefix) - strlen($request->customer_id)) : '') . $request->customer_id;
+            $prefix2 = '00';
+            $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
+            $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
+        } else {
+            $serviceNumber = '';
+        }
+        
+        return response()->json($serviceNumber);
+
     }
 }

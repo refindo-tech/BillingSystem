@@ -22,6 +22,7 @@ class UserRecharge extends Model
         'status',
         'method',
         'type',
+        'service_number',
     ];
 
     protected $casts = [
