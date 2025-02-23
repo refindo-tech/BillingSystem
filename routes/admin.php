@@ -73,6 +73,7 @@ Route::name('admin:')->group(function () {
         Route::get('network/pool/option', [AdminNetworkController::class, 'poolOption'])->name('network.pool.option');
         Route::get('network/router/option', [AdminNetworkController::class, 'routerOption'])->name('network.router.option');
         Route::get('network/plan/option', [AdminNetworkController::class, 'planOption'])->name('network.plan.option');
+        Route::get('network/server/option', [AdminNetworkController::class, 'serverOption'])->name('network.server.option');
 
         // Route::get('network/server', [AdminNetworkController::class, 'server'])->name('network.server.index');
         Route::get('network/server/add', [AdminNetworkController::class, 'createServer'])->name('network.server.create');

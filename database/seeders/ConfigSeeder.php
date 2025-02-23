@@ -14,7 +14,7 @@ class ConfigSeeder extends Seeder
     {
 
         $values = [
-            ['CompanyName', 'PHPNuxBill'],
+            ['CompanyName', 'RLNET'],
             ['currency_code', 'Rp.'],
             ['language', 'english'],
             ['show-logo', '1'],
