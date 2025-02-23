@@ -340,11 +340,12 @@ class Mikrotik
         } else {
             $pass = $customer['password'];
         }
+        
         $client->sendSync(
             $addRequest
                 ->setArgument('name', $customer['username'])
                 ->setArgument('service', 'pppoe')
-                ->setArgument('profile', $plan['name_plan'])
+                ->setArgument('profile', $plan['name'])
                 ->setArgument('comment', $customer['fullname'].' | '.$customer['email'])
                 ->setArgument('password', $pass)
         );
