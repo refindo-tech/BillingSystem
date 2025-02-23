@@ -19,6 +19,7 @@ use App\Models\Router;
 use App\Models\Transaction;
 use App\Models\UserRecharge;
 use App\Models\Voucher;
+use App\Models\Server;
 use App\Support\Facades\Config;
 use App\Support\Facades\Log;
 use App\Support\Lang;
@@ -40,7 +41,6 @@ class AdminPrepaidController extends Controller
     public function createUser()
     {
         $mode = 'add';
-        
         $prefix = '00000';
         $customers = Customer::all()->mapWithKeys(fn ($customer) => [
 

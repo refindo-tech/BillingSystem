@@ -28,6 +28,11 @@ class Router extends Model
         return $this->hasMany(Plan::class);
     }
 
+    public function servers(): HasMany
+    {
+        return $this->hasMany(Server::class);
+    }
+
     public function getStatusAttribute(): string
     {
         return $this->enabled ? 'Enabled' : 'Disabled';

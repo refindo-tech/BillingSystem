@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\DataTables\PoolDataTable;
 use App\DataTables\RouterDataTable;
+use App\DataTables\ServerDataTable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Network\PoolRequest;
 use App\Http\Requests\Admin\Network\RouterRequest;
 use App\Models\Plan;
 use App\Models\Pool;
 use App\Models\Router;
+use App\Models\Server;
 use App\Support\Facades\Log;
 use App\Support\Lang;
 use App\Support\Mikrotik;
@@ -43,6 +45,16 @@ class AdminNetworkController extends Controller
         return view('admin.network.pool-form', compact('mode', 'routers', 'defaultRouterId'));
     }
 
+    public function createServer(ServerDataTable $dataTable)
+    {
+        $mode = 'add';
+        $routers = Router::pluck('name', 'id');
+        $defaultRouterId = Router::first()?->id;
+        // dd($dataTable->ajax());
+        // return view('admin.network.server-form', compact('mode', 'routers', 'defaultRouterId'));
+        return $dataTable->render('admin.network.server-form', compact('mode', 'routers', 'defaultRouterId'));
+    }
+
     public function editRouter(Router $router)
     {
         $mode = 'edit';
@@ -57,6 +69,15 @@ class AdminNetworkController extends Controller
         $defaultRouterId = Router::first()?->id;
 
         return view('admin.network.pool-form', compact('mode', 'pool', 'routers', 'defaultRouterId'));
+    }
+
+    public function editServer(Server $server)
+    {
+        $mode = 'edit';
+        $routers = Router::pluck('name', 'id');
+        $defaultRouterId = Router::first()?->id;
+        return view('admin.network.server-form', compact('mode', 'server', 'routers', 'defaultRouterId'));
+        // return $dataTable->render('admin.network.server-form', compact('mode', 'server', 'routers', 'defaultRouterId'));
     }
 
     public function storeRouter(RouterRequest $request)
@@ -87,6 +108,13 @@ class AdminNetworkController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
+    }
+
+    public function storeServer(Request $request)
+    {
+        Server::create($request->all());
+
+        return redirect(route('admin:network.server.create'))->with('success', __('success.created'));
     }
 
     /**
@@ -136,6 +164,13 @@ class AdminNetworkController extends Controller
         }
     }
 
+    public function updateServer(Server $server, Request $request)
+    {
+        $server->update($request->all());
+
+        return redirect(route('admin:network.server.create'))->with('success', __('success.updated'));
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -166,6 +201,13 @@ class AdminNetworkController extends Controller
         return redirect()->back()->with('success', __('success.deleted'));
     }
 
+    public function destroyServer(Server $server)
+    {
+        $server->delete();
+        Log::put('Delete Server '.$server->name, auth()->user());
+        return redirect()->back()->with('success', __('success.deleted'));
+    }
+
     public function poolOption(Request $request)
     {
         $pools = Pool::when($request->has('router_id'), fn ($query) => $query->where('router_id', $request->router_id))->pluck('pool_name', 'id');
@@ -189,5 +231,13 @@ class AdminNetworkController extends Controller
             ->mapWithKeys(fn ($plan) => [$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
 
         return response()->json($plans);
+    }
+
+    public function serverOption(Request $request)
+    {
+        $servers = Server::when($request->has('router_id'), fn ($query) => $query->where('router_id', $request->router_id))
+            ->pluck('name', 'id');
+
+        return response()->json($servers);
     }
 }

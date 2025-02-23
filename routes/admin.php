@@ -74,6 +74,13 @@ Route::name('admin:')->group(function () {
         Route::get('network/router/option', [AdminNetworkController::class, 'routerOption'])->name('network.router.option');
         Route::get('network/plan/option', [AdminNetworkController::class, 'planOption'])->name('network.plan.option');
 
+        // Route::get('network/server', [AdminNetworkController::class, 'server'])->name('network.server.index');
+        Route::get('network/server/add', [AdminNetworkController::class, 'createServer'])->name('network.server.create');
+        Route::get('network/server/{server}/edit', [AdminNetworkController::class, 'editServer'])->name('network.server.edit');
+        Route::delete('network/server/{server}', [AdminNetworkController::class, 'destroyServer'])->name('network.server.destroy');
+        Route::post('network/server', [AdminNetworkController::class, 'storeServer'])->name('network.server.store');
+        Route::patch('network/server/{server}', [AdminNetworkController::class, 'updateServer'])->name('network.server.update');
+
         //# SERVICES ##
         Route::get('service/bandwidth', [AdminServiceController::class, 'bandwidth'])->name('service.bandwidth.index');
         Route::get('service/bandwidth/add', [AdminServiceController::class, 'createBandwidth'])->name('service.bandwidth.create');
