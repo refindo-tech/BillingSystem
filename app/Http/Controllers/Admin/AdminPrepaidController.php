@@ -81,15 +81,25 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultValidityCycle = $user->validity_cycle;
 
+        
+
         return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle'));
     }
 
     public function storeUser(PrepaidUserRequest $request)
     {
+
+        
+
         $customer = Customer::findOrFail($request->customer_id);
         $router = Router::findOrFail($request->router_id);
         $plan = Plan::findOrFail($request->plan_id);
-        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at);
+        $username = $request->username;
+        $password = $request->pppoe_password;
+        $server_id = $request->server_id;
+
+        // dd($request->all());
+        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
 
@@ -106,7 +116,10 @@ class AdminPrepaidController extends Controller
         $user->expired_at = $request->expired_at;
         $user->save();
 
-        Package::changeTo($customer, $plan, $user);
+        $username = $request->username;
+        $password = $request->pppoe_password;
+
+        Package::changeTo($customer, $plan, $user, $username, $password);
         Log::put('Update account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));

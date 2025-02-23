@@ -191,7 +191,8 @@ class Mikrotik
         );
     }
 
-    public static function addHotspotUser(Client $client, Plan $plan, Customer $customer)
+    public static function addHotspotUser(Client $client, Plan $plan, Customer $customer, String $username, String $password)
+    
     {
         global $_app_stage;
         if ($_app_stage == 'demo') {
@@ -207,9 +208,9 @@ class Mikrotik
                 }
                 $client->sendSync(
                     $addRequest
-                        ->setArgument('name', $customer['username'])
+                        ->setArgument('name', $username)
                         ->setArgument('profile', $plan['name'])
-                        ->setArgument('password', $customer['password'])
+                        ->setArgument('password', $password)
                         ->setArgument('comment', $customer['fullname'])
                         ->setArgument('email', $customer['email'])
                         ->setArgument('limit-uptime', $timelimit)
@@ -328,22 +329,24 @@ class Mikrotik
         $client->sendSync($removeRequest);
     }
 
-    public static function addPpoeUser(Client $client, Plan $plan, Customer $customer)
+    public static function addPpoeUser(Client $client, Plan $plan, Customer $customer, String $username, String $password)
     {
         global $_app_stage;
         if ($_app_stage == 'demo') {
             return null;
         }
         $addRequest = new Request('/ppp/secret/add');
-        if (! empty($customer['pppoe_password'])) {
-            $pass = $customer['pppoe_password'];
-        } else {
-            $pass = $customer['password'];
-        }
+        // if (! empty($customer['pppoe_password'])) {
+        //     $pass = $customer['pppoe_password'];
+        // } else {
+        //     $pass = $customer['password'];
+        // }
+
+        $pass = $password;
         
         $client->sendSync(
             $addRequest
-                ->setArgument('name', $customer['username'])
+                ->setArgument('name', $username)
                 ->setArgument('service', 'pppoe')
                 ->setArgument('profile', $plan['name'])
                 ->setArgument('comment', $customer['fullname'].' | '.$customer['email'])

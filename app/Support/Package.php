@@ -15,7 +15,7 @@ use App\Models\UserRecharge;
 
 class Package
 {
-    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null, $validityCycle = null, $expiredAt = null)
+    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null, $validityCycle = null, $expiredAt = null, $username = null, $pppoePassword = null, $server_id = null)
     {
 
         if ($serviceNumber == null) {
@@ -50,7 +50,7 @@ class Package
                     //TODO: radues add customer plan
                 } else {
                     $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addHotspotUser($client, $plan, $customer);
+                    Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
                 }
 
                 //extend the date if it's the same plan.
@@ -96,12 +96,13 @@ class Package
                     // TODO: radius add customer plan
                 } else {
                     $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addHotspotUser($client, $plan, $customer);
+                    Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
                 }
 
                 UserRecharge::create([
                     'customer_id' => $customer->id,
-                    'username' => $customer->username,
+                    'username' => $username ?? $customer->username,
+                    'pppoe_password' => $pppoePassword,
                     'plan_id' => $plan->id,
                     'namebp' => $plan->name,
                     'recharged_at' => $date_now,
@@ -112,6 +113,7 @@ class Package
                     'type' => PlanType::HOTSPOT,
                     'service_number' => $serviceNumber,
                     'validity_cycle' => $validityCycle,
+                    'server_id' => $server_id,
                 ]);
 
                 Transaction::create([
@@ -133,7 +135,7 @@ class Package
                     // TODO: radues customer add plan
                 } else {
                     $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addPpoeUser($client, $plan, $customer);
+                    Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
                 }
 
                 if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
@@ -180,12 +182,13 @@ class Package
                     //TODO: radues customer add plan
                 } else {
                     $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addPpoeUser($client, $plan, $customer);
+                    Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
                 }
 
                 UserRecharge::create([
                     'customer_id' => $customer->id,
-                    'username' => $customer->username,
+                    'username' => $username ?? $customer->username,
+                    'pppoe_password' => $pppoePassword,
                     'plan_id' => $plan->id,
                     'namebp' => $plan->name,
                     'recharged_at' => $date_now,
@@ -196,6 +199,7 @@ class Package
                     'type' => PlanType::PPPOE,
                     'service_number' => $serviceNumber,
                     'validity_cycle' => $validityCycle,
+                    'server_id' => $server_id,
                 ]);
 
                 Transaction::create([
@@ -217,7 +221,7 @@ class Package
         }
     }
 
-    public static function changeTo(Customer $customer, Plan $plan, UserRecharge $userRecharge)
+    public static function changeTo(Customer $customer, Plan $plan, UserRecharge $userRecharge, String $username, String $pppoePassword)
     {
         /** @var Router $mikrotik */
         $mikrotik = $userRecharge->router;
@@ -229,13 +233,13 @@ class Package
             if ($plan->is_radius) {
                 //TODO:
             } else {
-                Mikrotik::addHotspotUser($client, $plan, $customer);
+                Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
             }
         } else {
             if ($plan->is_radius) {
                 //TODO:
             } else {
-                Mikrotik::addPpoeUser($client, $plan, $customer);
+                Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
             }
         }
     }

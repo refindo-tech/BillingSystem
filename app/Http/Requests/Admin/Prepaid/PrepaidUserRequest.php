@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin\Prepaid;
 use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Router;
+use App\Models\UserRecharge;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,6 +30,8 @@ class PrepaidUserRequest extends FormRequest
             'customer_id' => ['required', Rule::exists(Customer::class, 'id')],
             'router_id' => ['required', Rule::exists(Router::class, 'id')],
             'plan_id' => ['required', Rule::exists(Plan::class, 'id')],
+            'username' => ['required', Rule::unique(UserRecharge::class, 'username')],
+            'pppoe_password' => ['required', 'string', 'max:255'],
         ];
     }
 }
