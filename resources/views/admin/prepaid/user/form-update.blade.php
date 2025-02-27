@@ -18,51 +18,98 @@
                     @if ($mode == 'edit')
                         <input type="hidden" name="id" value="{{ $user['id'] }}" />
                     @endif
+
+                    {{-- paket aktif saat ini --}}
+                    <div class="row">
+                        <div class="col-mt-2">
+                            <label
+                                class="form-label
+                                @if ($mode == 'edit') text-muted @endif">Customer</label>
+                        </div>
+                    </div>
+
                     <x-form.group.select name="customer_id" label="Select Account" :options="$customers" required
                         :value="@$user['customer_id']" :readonly="$mode == 'edit'" />
                     <x-form.group.input name="service_number" label="Nomor Layanan" required :readonly="$mode == 'edit'"
                         tooltip="2 digit tahun + ID pelanggan + 2 digit urutan layanan by pelanggan."
                         :value="@$user['service_number'] ?? ''" />
 
-
                     <hr>
 
-                    <x-form.group.select name="plan_type" label="Type" :options="$planTypes" required :value="@$user['plan_type'] ?? @$defaultPlanType?->value"
-                        :readonly="$mode == 'edit'" />
+                    {{-- paket aktif saat ini --}}
+                    <div class="row">
+                        <div class="col-mt-2">
+                            <label
+                                class="form-label
+                                @if ($mode == 'edit') text-muted @endif">Network</label>
+                        </div>
+                    </div>
 
-                    <x-form.group.select name="router_id" label="Routers" :options="[]" required :value="@$user['router_id'] ?? @$defaultRouterId"
-                        :readonly="$mode == 'edit'" />
+                    <x-form.group.input name="plan_type" label="Type" required :readonly="true" :value="@$user['plan_type'] ?? @$defaultPlanType?->value" />
 
-                    <x-form.group.select name="server_id" label="Server" :options="[]" required :value="@$user['server_id']"
-                        :readonly="$mode == 'edit'" />
+                    <x-form.group.input name="router_id" label="Routers" required :readonly="true"
+                        :value="@$user->plan->router['name'] ?? ''" />
 
-                    <x-form.group.input name="username" label="Username" required readonly :value="@$user['username'] ?? ''" />
+                    <x-form.group.input name="server_id" label="Server" required :readonly="true"
+                        :value="@$user->server['name'] ?? ''" />
+
+                    <x-form.group.input name="username" label="Username" required :readonly="true"
+                        :value="@$user['username'] ?? ''" />
                     <x-form.group.input name="pppoe_password" label="Password" required value="1234"
                         :value="@$user['pppoe_password'] ?? '123456'" />
 
                     <hr>
 
-                    <x-form.group.select name="plan_id" label="Service Plan" :options="[]" required
-                        :value="@$user['plan_id']" />
+                    <div class="row">
+                        <div class="col-md-6 flex flex-col gap-5">
+                            <label
+                                class="form-label
+                                @if ($mode == 'edit') text-muted @endif">Current
+                                Package</label>
 
-                    <x-form.group.select name="validity_cycle" label="Siklus Layanan" :options="$validityCycles" required
-                        tooltip=" Profile: Mengikuti durasi dasar masing-masing paket. Tetap: Tenggat kadaluarsa mengikuti tanggal aktivasi paket. Bulanan: Selalu berakhir di tanggal yang sama, yaitu tiap tanggal 4 tiap bulan." />
+                            <x-form.group.input name="plan_id" label="Service Plan" :readonly="true"
+                                :value="@$user->plan['name'] ?? ''" />
 
-                    @if ($mode == 'edit')
-                        <x-form.group.input :disabled="true" name="Tanggal " type="datetime-local" :value="@$user['created_at']->format('Y-m-d H:i') ?? ''"
-                            label="Activation Date" />
-                        <x-form.group.input name="expired_at" type="datetime-local" required :value="@$user['created_at']->format('Y-m-d H:i') ?? ''"
-                            label="Expired Date" />
-                    @else
-                        <x-form.group.input name="active_at" type="datetime-local" required label="Activation Date"
-                            value="{{ now()->format('Y-m-d\TH:i') }}" />
-                        <x-form.group.input name="expired_at" type="datetime-local" required label="Expired Date"
-                            readonly />
-                    @endif
+                            <x-form.group.input name="validity_cycle" label="Siklus Layanan" :readonly="true"
+                                :value="@$user['validity_cycle']" />
+
+                            @if ($mode == 'edit')
+                                <x-form.group.input :disabled="true" name="Tanggal " type="datetime-local"
+                                    :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Activation Date" />
+                                <x-form.group.input name="expired_at" :disabled="true" type="datetime-local"
+                                    :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Expired Date" />
+                            @else
+                                <x-form.group.input name="active_at" type="datetime-local" label="Activation Date"
+                                    value="{{ now()->format('Y-m-d\TH:i') }}" />
+                                <x-form.group.input name="expired_at" type="datetime-local" label="Expired Date" :readonly="true" />
+                            @endif
+
+
+                        </div>
+                        <div class="col-md-6 flex flex-col gap-5">
+                            <label
+                                class="form-label
+                                @if ($mode == 'edit') text-muted @endif">Modify
+                                Package</label>
+
+                            <x-form.group.select name="upgrade_type" label="Upgrade Type" :options="$upgradeTypes" required />
+                            <x-form.group.select name="new_plan_id" label="New Plan" :options="[]" required />
+
+                        </div>
+                    </div>
+
+
+
+
+                    <hr>
+
+
+
+
 
                     <div class="row py-5">
-                        <div class="col-md-9 offset-md-3">
-                            <div class="d-flex">
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-end">
                                 <button type="reset" onclick="window.history.back()" class="btn btn-light me-3">
                                     Cancel
                                 </button>
@@ -73,6 +120,8 @@
                             </div>
                         </div>
                     </div>
+
+
 
                 </form>
 
@@ -125,7 +174,16 @@
                     const data = await this.fetchData("{{ route('admin:network.server.option') }}?router_id=" +
                         routerId, "servers", routerId);
 
+                        
+
                     this.populateSelect('[name="server_id"]', data, defaultValue);
+                },
+
+                async getNewPlan(id, upgradeType) {
+                    if (!id) return;
+                    const data = await this.fetchData("{{ route('admin:prepaid.user.upgrade.option') }}?id=" +
+                        id + "&upgrade_type=" + upgradeType, "plans", upgradeType);
+                    this.populateSelect('[name="new_plan_id"]', data, '');
                 },
 
                 async updateServiceNumber(customerId) {
@@ -159,6 +217,10 @@
                 },
 
                 populateSelect(selector, data, defaultValue) {
+                    //if default value is '' then set it to first option
+                    if (!defaultValue) {
+                        defaultValue = Object.keys(data)[0];
+                    }
                     const $select = $(selector);
                     $select.empty().select2({
                         data: [{
@@ -172,35 +234,28 @@
                 },
 
                 init() {
-                    this.getRouter($('[name="plan_type"]').val(), @json(@$defaultRouterId ?? ''));
 
-                    $('[name="plan_type"]').on('change', (e) => this.getRouter(e.target.value));
-                    $('[name="router_id"]').on('change', (e) => {
-                        this.getServer(e.target.value);
-                        this.getPlan(e.target.value);
-                    });
-                    $('[name="customer_id"]').on('change', (e) => {
-                        if (!$('[name="service_number"]').prop('readonly')) {
-                            this.updateServiceNumber(e.target.value);
+                    //init get new plan
+                    const userRechargeId = $('[name="id"]').val();
+                    const upgradeType = $('[name="upgrade_type"]').val();
+                    this.getNewPlan(userRechargeId, upgradeType);
+
+                    //when upgrade type change
+                    $('[name="upgrade_type"]').on('change', () => {
+                        const upgradeType = $('[name="upgrade_type"]').val();
+                        const userRechargeId = $('[name="id"]').val();
+                        const planId = $('[name="plan_id"]').val();
+
+                        console.log(upgradeType);
+
+                        //if upgrade type not DEACTIVATE
+                        if (upgradeType != 'DEACTIVATE') {
+                            $('[name="new_plan_id"]').prop('disabled', false);
+                            this.getNewPlan(userRechargeId, upgradeType);
+                        } else {
+                            $('[name="new_plan_id"]').prop('disabled', true);
                         }
                     });
-
-                    // Debounce updateExpiredAt calls
-                    let timeout;
-                    $('[name="validity_cycle"], [name="active_at"], [name="plan_id"]').on('change', () => {
-                        clearTimeout(timeout);
-                        timeout = setTimeout(() => this.updateExpiredAt(), 300);
-                    });
-
-                    // Auto-update username when service_number changes
-                    $('[name="service_number"]').on('change', (e) => {
-                        $('[name="username"]').val(e.target.value + '@RLNET.com');
-                    });
-
-                    //init service number if customer_id is set
-                    if ($('[name="customer_id"]').val()) {
-                        this.updateServiceNumber($('[name="customer_id"]').val());
-                    }
                 },
             });
         </script>
