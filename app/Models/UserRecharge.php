@@ -48,6 +48,11 @@ class UserRecharge extends Model
         return $this->belongsTo(Router::class);
     }
 
+    public function server(): BelongsTo
+    {
+        return $this->belongsTo(Server::class);
+    }
+
     public function getIsActiveAttribute(): bool
     {
         return $this->status === 'on';

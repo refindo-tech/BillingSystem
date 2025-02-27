@@ -10,6 +10,7 @@ use App\Enum\VoucherFormat;
 use App\Enum\VoucherStatus;
 use App\Enum\ValidityCycle;
 use App\Enum\ValidityUnit;
+use App\Enum\UpgradeType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidVoucherRequest;
@@ -27,6 +28,7 @@ use App\Support\Mikrotik;
 use App\Support\Package;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+
 
 class AdminPrepaidController extends Controller
 {
@@ -63,8 +65,10 @@ class AdminPrepaidController extends Controller
         $user['customer_id'] = $user->id;
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
+        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
+        $defaultValidityCycle = ValidityCycle::PROFILE;
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle'));
     }
 
     public function editUser(UserRecharge $user)
@@ -81,9 +85,12 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultValidityCycle = $user->validity_cycle;
 
-        
+        $upgradeTypes = array_column(UpgradeType::cases(), 'value', 'value');
+        $upgradeTypes = array_map(function ($value) {
+            return $value . ' - ' . UpgradeType::from($value)->description();
+        }, $upgradeTypes);
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle'));
+        return view('admin.prepaid.user.form-update', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle', 'upgradeTypes'));
     }
 
     public function storeUser(PrepaidUserRequest $request)
@@ -260,7 +267,9 @@ class AdminPrepaidController extends Controller
             $serviceNumber = date('y');
             $serviceNumber .= (strlen($prefix) > strlen($request->customer_id) ? substr($prefix, 0, strlen($prefix) - strlen($request->customer_id)) : '') . $request->customer_id;
             $prefix2 = '00';
-            $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
+            // $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
+            $userRecharge = UserRecharge::where('customer_id', $request->customer_id)->latest('id')->first();
+            $serviceCount = $userRecharge ? (int)substr($userRecharge->service_number, -2) + 1 : 1;
             $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
         } else {
             $serviceNumber = '';
@@ -297,4 +306,54 @@ class AdminPrepaidController extends Controller
 
         return response()->json($expiredAt);
     }
+
+    public function upgradeOption(Request $request)
+    {
+        if ($request->has(['id', 'upgrade_type'])) {
+            $user = UserRecharge::findOrFail($request->id);
+            $plan = Plan::findOrFail($user->plan_id);
+
+            if ($request->upgrade_type == UpgradeType::RECHARGE->value) {
+                //pluck the id and name of the user's current plan
+                $plans = collect([$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+                return response()->json($plans);
+            }
+
+            $plans = Plan::where('type', $plan->type)->get()->filter(function ($value) use ($plan, $request) {
+                return match ($request->upgrade_type) {
+                    UpgradeType::UPGRADE->value => $value->price > $plan->price,
+                    UpgradeType::DOWNGRADE->value => $value->price < $plan->price,
+                    default => true,
+                };
+            })->map(function ($value) use ($user) {
+                $value['price'] = $this->calculatePrice($user->recharged_at, $user->expired_at, $user->plan->price, $value->price);
+                return $value;
+            });
+
+            //pluck the id and name
+            $plans = $plans->mapWithKeys(fn ($plan) => [$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+
+            return response()->json($plans);
+        }
+
+        return response()->json([]);
+    }
+
+    private function calculatePrice($startDateTime, $endDateTime, $oldPlanPrice, $newPlanPrice)
+    {
+        $start = strtotime($startDateTime);
+        $end = strtotime($endDateTime);
+        $today = time();
+        $totalDays = 30;
+        $usedDays = ($today - $start) / (60 * 60 * 24);
+        $remainingDays = ($end - $today) / (60 * 60 * 24);
+
+        $oldPlanPricePerDay = $oldPlanPrice / $totalDays;
+        $newPlanPricePerDay = $newPlanPrice / $totalDays;
+        $totalPrice = ($oldPlanPricePerDay * $usedDays) + ($newPlanPricePerDay * $remainingDays);
+        //round to the nearest 500, ex: 932468.4606060 -> 932500
+        return round($totalPrice / 500) * 500;
+        
+    }
+
 }

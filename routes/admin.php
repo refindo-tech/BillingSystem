@@ -43,6 +43,7 @@ Route::name('admin:')->group(function () {
         Route::delete('prepaid/user/{user}', [AdminPrepaidController::class, 'destroyUser'])->name('prepaid.user.destroy');
         Route::patch('prepaid/user/{user}', [AdminPrepaidController::class, 'updateUser'])->name('prepaid.user.update');
         Route::post('prepaid/user', [AdminPrepaidController::class, 'storeUser'])->name('prepaid.user.store');
+        Route::get('prepaid/user/upgrade/option', [AdminPrepaidController::class, 'upgradeOption'])->name('prepaid.user.upgrade.option');
         Route::get('prepaid/user/service-number', [AdminPrepaidController::class, 'serviceNumber'])->name('prepaid.user.service-number');
         Route::get('prepaid/user/expired-at', [AdminPrepaidController::class, 'expiredAt'])->name('prepaid.user.expired-at');
         Route::get('prepaid/invoice/{invoice}/show', [AdminPrepaidController::class, 'showInvoice'])->name('prepaid.invoice.show');
