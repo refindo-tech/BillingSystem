@@ -11,6 +11,7 @@ use App\Enum\VoucherStatus;
 use App\Enum\ValidityCycle;
 use App\Enum\ValidityUnit;
 use App\Enum\UpgradeType;
+use App\Enum\PaymentGatewayStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserUpdateRequest;
@@ -22,8 +23,11 @@ use App\Models\Transaction;
 use App\Models\UserRecharge;
 use App\Models\Voucher;
 use App\Models\Server;
+use App\Models\PaymentGateway;
 use App\Support\Facades\Config;
 use App\Support\Facades\Log;
+use App\Support\Facades\Xendit;
+use App\Support\Facades\Tripay;
 use App\Support\Lang;
 use App\Support\Mikrotik;
 use App\Support\Package;
@@ -136,18 +140,42 @@ class AdminPrepaidController extends Controller
     public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
 
-        dd($request->all());
+        // $activeGateway = Config::get('active_payment_gateway');
+        // if (empty($activeGateway)) {
+        //     $activeGateway = 'tripay';
+        // }
 
+        // // Validate selected payment gateway config
+        // if ($activeGateway === 'xendit') {
+        //     Xendit::validateConfig();
+        // } elseif ($activeGateway === 'tripay') {
+        //     Tripay::validateConfig();
+        // } else {
+        //     return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        // }
+
+        // // Check for existing unpaid transaction
+        // $order = PaymentGateway::where('username', $user->username)
+        //     ->where('status', PaymentGatewayStatus::UNPAID)
+        //     ->first();
+
+
+        // dd($activeGateway);
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
-        $user->plan_id = $request->plan_id;
-        $user->expired_at = $request->expired_at;
+        $newPlan = Plan::findOrFail($request->new_plan_id);
+        $user->plan_id = $newPlan->id;
+        $user->expired_at = match ($request->upgrade_type) {
+            UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
+            UpgradeType::DEACTIVATE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' -1 day')),
+            default => $user->expired_at,
+        };
         $user->save();
 
         $username = $request->username;
         $password = $request->pppoe_password;
 
-        Package::changeTo($customer, $plan, $user, $username, $password);
+        Package::changeTo($customer, $newPlan, $user, $username, $password);
         Log::put('Update account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
