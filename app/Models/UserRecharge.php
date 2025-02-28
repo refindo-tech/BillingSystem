@@ -15,7 +15,9 @@ class UserRecharge extends Model
         'customer_id',
         'plan_id',
         'router_id',
+        'server_id',
         'username',
+        'pppoe_password',
         'namebp',
         'recharged_at',
         'expired_at',
@@ -44,6 +46,11 @@ class UserRecharge extends Model
     public function router(): BelongsTo
     {
         return $this->belongsTo(Router::class);
+    }
+
+    public function server(): BelongsTo
+    {
+        return $this->belongsTo(Server::class);
     }
 
     public function getIsActiveAttribute(): bool

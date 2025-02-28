@@ -13,9 +13,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::table('user_recharges', function (Blueprint $table) {
-        //     $table->foreignIdFor(Server::class)->constrained();
-        // });
+        Schema::table('user_recharges', function (Blueprint $table) {
+            $table->string('pppoe_password', 32)->default('123456')->after('username')->comment('Password untuk akun PPP');
+        });
     }
 
     /**
@@ -23,9 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::table('user_recharges', function (Blueprint $table) {
-        //     $table->dropForeign(['server_id']);
-        //     $table->dropColumn('server_id');
-        // });
+        Schema::table('user_recharges', function (Blueprint $table) {
+            $table->dropColumn('pppoe_password');
+        });
     }
 };

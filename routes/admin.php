@@ -43,6 +43,7 @@ Route::name('admin:')->group(function () {
         Route::delete('prepaid/user/{user}', [AdminPrepaidController::class, 'destroyUser'])->name('prepaid.user.destroy');
         Route::patch('prepaid/user/{user}', [AdminPrepaidController::class, 'updateUser'])->name('prepaid.user.update');
         Route::post('prepaid/user', [AdminPrepaidController::class, 'storeUser'])->name('prepaid.user.store');
+        Route::get('prepaid/user/upgrade/option', [AdminPrepaidController::class, 'upgradeOption'])->name('prepaid.user.upgrade.option');
         Route::get('prepaid/user/service-number', [AdminPrepaidController::class, 'serviceNumber'])->name('prepaid.user.service-number');
         Route::get('prepaid/user/expired-at', [AdminPrepaidController::class, 'expiredAt'])->name('prepaid.user.expired-at');
         Route::get('prepaid/invoice/{invoice}/show', [AdminPrepaidController::class, 'showInvoice'])->name('prepaid.invoice.show');
@@ -73,6 +74,7 @@ Route::name('admin:')->group(function () {
         Route::get('network/pool/option', [AdminNetworkController::class, 'poolOption'])->name('network.pool.option');
         Route::get('network/router/option', [AdminNetworkController::class, 'routerOption'])->name('network.router.option');
         Route::get('network/plan/option', [AdminNetworkController::class, 'planOption'])->name('network.plan.option');
+        Route::get('network/server/option', [AdminNetworkController::class, 'serverOption'])->name('network.server.option');
 
         // Route::get('network/server', [AdminNetworkController::class, 'server'])->name('network.server.index');
         Route::get('network/server/add', [AdminNetworkController::class, 'createServer'])->name('network.server.create');

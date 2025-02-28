@@ -10,8 +10,11 @@ use App\Enum\VoucherFormat;
 use App\Enum\VoucherStatus;
 use App\Enum\ValidityCycle;
 use App\Enum\ValidityUnit;
+use App\Enum\UpgradeType;
+use App\Enum\PaymentGatewayStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
+use App\Http\Requests\Admin\Prepaid\PrepaidUserUpdateRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidVoucherRequest;
 use App\Models\Customer;
 use App\Models\Plan;
@@ -20,13 +23,17 @@ use App\Models\Transaction;
 use App\Models\UserRecharge;
 use App\Models\Voucher;
 use App\Models\Server;
+use App\Models\PaymentGateway;
 use App\Support\Facades\Config;
 use App\Support\Facades\Log;
+use App\Support\Facades\Xendit;
+use App\Support\Facades\Tripay;
 use App\Support\Lang;
 use App\Support\Mikrotik;
 use App\Support\Package;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+
 
 class AdminPrepaidController extends Controller
 {
@@ -63,25 +70,49 @@ class AdminPrepaidController extends Controller
         $user['customer_id'] = $user->id;
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
+        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
+        $defaultValidityCycle = ValidityCycle::PROFILE;
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle'));
     }
 
     public function editUser(UserRecharge $user)
     {
         $mode = 'edit';
-        $customers = Customer::where('id', $user->customer_id)->get()->mapWithKeys(fn ($customer) => [
+        $customer = Customer::findOrFail($user->customer_id);
+        $customers = [
             $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
-        ]);
-        
-        $planTypes = array_column(PlanType::cases(), 'value', 'value');
-        $defaultPlanType = $user->plan->type;
-        $defaultRouterId = $user->plan->router_id;
-        $serviceNumber = $user->service_number;
-        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
-        $defaultValidityCycle = $user->validity_cycle;
+        ];
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle'));
+        $planTypes = array_column(PlanType::cases(), 'value', 'value');
+        $planOptions = Plan::where('type', $user->plan->type)
+            ->where('router_id', $user->router_id)
+            ->get()
+            ->mapWithKeys(fn ($plan) => [
+                $plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price),
+            ]);
+
+        $routerOptions = Router::all()->mapWithKeys(fn ($router) => [
+            $router->id => $router->name.' - '.$router->ip_address,
+        ]);
+
+        $serverOptions = Server::where('router_id', $user->router_id)->get()->mapWithKeys(fn ($server) => [
+            $server->id => $server->name,
+        ]);
+
+        $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
+        $upgradeTypes = array_map(fn ($value) => $value . ' - ' . UpgradeType::from($value)->description(), array_column(UpgradeType::cases(), 'value', 'value'));
+
+        return view('admin.prepaid.user.form-update', compact(
+            'mode', 'customers', 'planTypes', 'planOptions', 'routerOptions', 'serverOptions', 'validityCycles', 'upgradeTypes'
+        ))->with([
+            'defaultPlanType' => $user->plan->type,
+            'defaultRouterId' => $user->plan->router_id,
+            'serviceNumber' => $user->service_number,
+            'defaultValidityCycle' => $user->validity_cycle,
+            'defaultUpgradeType' => UpgradeType::RECHARGE,
+            'user' => $user,
+        ]);
     }
 
     public function storeUser(PrepaidUserRequest $request)
@@ -89,7 +120,15 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($request->customer_id);
         $router = Router::findOrFail($request->router_id);
         $plan = Plan::findOrFail($request->plan_id);
-        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at);
+        $username = $request->username;
+        $password = $request->pppoe_password;
+        $server_id = $request->server_id;
+
+        // create transaction
+        // $trx = $this->createUserTransaction($customer, $plan);
+
+        dd($request->all());
+        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
 
@@ -98,15 +137,79 @@ class AdminPrepaidController extends Controller
         return redirect()->route('admin:prepaid.invoice.show', $invoice);
     }
 
-    public function updateUser(PrepaidUserRequest $request, UserRecharge $user)
+    public function createUserTransaction(Customer $customer, Plan $plan)
     {
+        $activeGateway = Config::get('active_payment_gateway');
+        if (empty($activeGateway)) {
+            $activeGateway = 'xendit';
+        }
+        $error = null;
+        if ($activeGateway === 'xendit') {
+            Xendit::validateConfig();
+        } elseif ($activeGateway === 'tripay') {
+            Tripay::validateConfig();
+        } else {
+            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        }
+
+        $order = PaymentGateway::where('username', $customer->username)
+            ->where('status', PaymentGatewayStatus::UNPAID)
+            ->first();
+        
+        // Check for existing unpaid transaction
+        if ($order && $order->pg_url_payment) {
+            return false;
+        }
+
+        if (empty($order)) {
+            $order = PaymentGateway::create([
+                'username' => $customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $plan->id,
+                'plan_name' => $plan->name,
+                'router_id' => $plan->router->id,
+                'router_name' => $plan->router->name,
+                'price' => $plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        } else {
+            $order->update([
+                'username' => $customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $plan->id,
+                'plan_name' => $plan->name,
+                'router_id' => $plan->router->id,
+                'router_name' => $plan->router->name,
+                'price' => $plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        }
+
+        return $activeGateway === 'xendit'
+            ? Xendit::createTransaction($order, $customer)
+            : Tripay::createTransaction($order, $customer);
+    }
+
+    public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
+    {
+
+        // dd($activeGateway);
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
-        $user->plan_id = $request->plan_id;
-        $user->expired_at = $request->expired_at;
+        $newPlan = Plan::findOrFail($request->new_plan_id);
+
+        $user->plan_id = $newPlan->id;
+        $user->expired_at = match ($request->upgrade_type) {
+            UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
+            // UpgradeType::DEACTIVATE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' -1 day')),
+            default => $user->expired_at,
+        };
         $user->save();
 
-        Package::changeTo($customer, $plan, $user);
+        $username = $request->username;
+        $password = $request->pppoe_password;
+
+        Package::changeTo($customer, $newPlan, $user, $username, $password);
         Log::put('Update account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
@@ -247,7 +350,9 @@ class AdminPrepaidController extends Controller
             $serviceNumber = date('y');
             $serviceNumber .= (strlen($prefix) > strlen($request->customer_id) ? substr($prefix, 0, strlen($prefix) - strlen($request->customer_id)) : '') . $request->customer_id;
             $prefix2 = '00';
-            $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
+            // $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
+            $userRecharge = UserRecharge::where('customer_id', $request->customer_id)->latest('id')->first();
+            $serviceCount = $userRecharge ? (int)substr($userRecharge->service_number, -2) + 1 : 1;
             $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
         } else {
             $serviceNumber = '';
@@ -284,4 +389,54 @@ class AdminPrepaidController extends Controller
 
         return response()->json($expiredAt);
     }
+
+    public function upgradeOption(Request $request)
+    {
+        if ($request->has(['id', 'upgrade_type'])) {
+            $user = UserRecharge::findOrFail($request->id);
+            $plan = Plan::findOrFail($user->plan_id);
+
+            if ($request->upgrade_type == UpgradeType::RECHARGE->value) {
+                //pluck the id and name of the user's current plan
+                $plans = collect([$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+                return response()->json($plans);
+            }
+
+            $plans = Plan::where('type', $plan->type)->get()->filter(function ($value) use ($plan, $request) {
+                return match ($request->upgrade_type) {
+                    UpgradeType::UPGRADE->value => $value->price > $plan->price,
+                    UpgradeType::DOWNGRADE->value => $value->price < $plan->price,
+                    default => true,
+                };
+            })->map(function ($value) use ($user) {
+                $value['price'] = $this->calculatePrice($user->recharged_at, $user->expired_at, $user->plan->price, $value->price);
+                return $value;
+            });
+
+            //pluck the id and name
+            $plans = $plans->mapWithKeys(fn ($plan) => [$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+
+            return response()->json($plans);
+        }
+
+        return response()->json([]);
+    }
+
+    private function calculatePrice($startDateTime, $endDateTime, $oldPlanPrice, $newPlanPrice)
+    {
+        $start = strtotime($startDateTime);
+        $end = strtotime($endDateTime);
+        $today = time();
+        $totalDays = 30;
+        $usedDays = ($today - $start) / (60 * 60 * 24);
+        $remainingDays = ($end - $today) / (60 * 60 * 24);
+
+        $oldPlanPricePerDay = $oldPlanPrice / $totalDays;
+        $newPlanPricePerDay = $newPlanPrice / $totalDays;
+        $totalPrice = ($oldPlanPricePerDay * $usedDays) + ($newPlanPricePerDay * $remainingDays);
+        //round to the nearest 500, ex: 932468.4606060 -> 932500
+        return round($totalPrice / 500) * 500;
+        
+    }
+
 }
