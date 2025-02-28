@@ -6,12 +6,19 @@ use App\Enum\PlanType;
 use App\Enum\RechargeGateway;
 use App\Enum\ValidityUnit;
 use App\Enum\ValidityCycle;
+use App\Enum\PaymentGatewayStatus;
+use App\Models\PaymentGateway;
 use App\Exceptions\PackageRechargeException;
 use App\Models\Customer;
 use App\Models\Plan;
 use App\Models\Router;
 use App\Models\Transaction;
 use App\Models\UserRecharge;
+
+use Illuminate\Support\Facades\Config;
+use App\Support\Facades\Xendit;
+use App\Support\Facades\Tripay;
+
 
 class Package
 {
@@ -24,8 +31,8 @@ class Package
         string $serviceNumber = null,
         $validityCycle = null,
         $expiredAt = null,
-        String $username = null,
-        String $pppoePassword = null,
+        $username = null,
+        $pppoePassword = null,
         $server_id = null
     ) {
         $date_now = now();
@@ -38,13 +45,13 @@ class Package
     
         $date_exp = $expiredAt ?? static::calculateExpiration($plan, $validityCycle, $userRecharge);
     
-        if (!$plan->is_radius) {
-            static::createMikrotikAccount($mikrotik, $customer, $plan, $username, $pppoePassword);
-        } else {
-            // TODO: Handle radius integration
-        }
+        // if (!$plan->is_radius) {
+        //     static::createMikrotikAccount($mikrotik, $customer, $plan, $username, $pppoePassword);
+        // } else {
+        //     // TODO: Handle radius integration
+        // }
     
-        return static::createUserRecharge(
+        $userRecharge = static::createUserRecharge(
             $customer,
             $mikrotik,
             $plan,
@@ -58,6 +65,10 @@ class Package
             $pppoePassword,
             $server_id
         );
+
+
+
+        return $userRecharge;
     }
     
     /**
@@ -81,6 +92,8 @@ class Package
             'customer_id' => $customer->id,
             'router_id' => $mikrotik->id,
         ])->first();
+
+        // dd($username, $pppoePassword, $plan->type, $plan->name, $date_now, $date_exp, $gateway->value, $channel, $mikrotik->id, $serviceNumber, $validityCycle, $server_id);
     
         if ($userRecharge) {
             // Extend validity if same plan is active
@@ -97,15 +110,15 @@ class Package
                 'namebp' => $plan->name,
             ]);
         } else {
-            UserRecharge::create([
+            $userRecharge = UserRecharge::create([
                 'customer_id' => $customer->id,
-                'username' => $username ?? $customer->username,
+                'username' => $username,
                 'pppoe_password' => $pppoePassword,
                 'plan_id' => $plan->id,
                 'namebp' => $plan->name,
                 'recharged_at' => $date_now,
                 'expired_at' => $date_exp,
-                'status' => 'on',
+                'status' => 'off',
                 'method' => "$gateway->value - $channel",
                 'router_id' => $mikrotik->id,
                 'type' => $plan->type,
@@ -114,42 +127,112 @@ class Package
                 'server_id' => $server_id,
             ]);
         }
-    
-        // Transaction::create([
-        //     'invoice' => 'INV-' . Package::_raid(5),
-        //     'username' => $customer->username,
-        //     'plan_name' => $plan->name,
-        //     'price' => $plan->price,
-        //     'recharged_at' => $date_now,
-        //     'expired_at' => $date_exp,
-        //     'method' => "$gateway->value - $channel",
-        //     'routers' => $mikrotik->name,
-        //     'type' => $plan->type,
-        // ]);
-    
-        return true;
+
+        //create user transaction
+        static::createUserTransaction($userRecharge);
+        return $userRecharge;
     }
 
-    //create transaction
+    //create user transaction
+    public static function createUserTransaction(UserRecharge $userRecharge)
+    {
 
-    
-    /**
-     * Creates a new MikroTik account (Hotspot or PPPoE).
-     */
-    private static function createMikrotikAccount(
-        Router $mikrotik,
-        Customer $customer,
-        Plan $plan,
-        $username,
-        $pppoePassword
-    ) {
-        $client = static::resetCustomerMikrotik($mikrotik, $customer);
-    
-        if ($plan->type == PlanType::HOTSPOT) {
-            Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
-        } else {
-            Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
+        
+
+        $activeGateway = Config::get('active_payment_gateway');
+        if (empty($activeGateway)) {
+            $activeGateway = 'xendit';
         }
+        
+        // Validate selected payment gateway config
+        if ($activeGateway === 'xendit') {
+            Xendit::validateConfig();
+        } elseif ($activeGateway === 'tripay') {
+            Tripay::validateConfig();
+        } else {
+            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        }
+
+        $order = PaymentGateway::where('user_recharge_id', $userRecharge->id)
+            ->where('status', PaymentGatewayStatus::UNPAID)
+            ->first();
+
+        // Check for existing unpaid transaction
+        if ($order && $order->pg_url_payment) {
+            return false;
+        }
+
+        
+
+        if (empty($order)) {
+            $order = PaymentGateway::create([
+                'user_recharge_id' => $userRecharge->id,
+                'username' => $userRecharge->customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $userRecharge->plan_id,
+                'plan_name' => $userRecharge->plan->name,
+                'router_id' => $userRecharge->router_id,
+                'router_name' => $userRecharge->router->name,
+                'price' => $userRecharge->plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        } else {
+            $order->update([
+                'username' => $userRecharge->customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $userRecharge->plan_id,
+                'plan_name' => $userRecharge->plan->name,
+                'router_id' => $userRecharge->router_id,
+                'router_name' => $userRecharge->router->name,
+                'price' => $userRecharge->plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        }
+
+        return $activeGateway === 'xendit'
+            ? Xendit::createTransaction($order, $userRecharge->customer)
+            : Tripay::createTransaction($order, $userRecharge->customer);
+    }
+
+    private static function createMikrotikAccount(UserRecharge $userRecharge)
+    {
+        $client = static::resetCustomerMikrotik($userRecharge->router, $userRecharge->customer);
+        if ($userRecharge->plan->type == PlanType::HOTSPOT) {
+            if ($userRecharge->plan->is_radius) {
+                //TODO:
+            } else {
+                Mikrotik::addHotspotUser($client, $userRecharge->plan, $userRecharge->customer, $userRecharge->username, $userRecharge->pppoe_password);
+            }
+        } else {
+            if ($userRecharge->plan->is_radius) {
+                //TODO:
+            } else {
+                Mikrotik::addPpoeUser($client, $userRecharge->plan, $userRecharge->customer, $userRecharge->username, $userRecharge->pppoe_password);
+            }
+        }
+    }
+
+    //Creat invoice
+    public static function activatePackage(UserRecharge $userRecharge, $rechargeGateway, $channel)
+    {
+        static::createMikrotikAccount($userRecharge);
+        $userRecharge->update([
+            'status' => 'on',
+        ]);
+
+        Transaction::create([
+            'invoice' => 'INV-' . Package::_raid(5),
+            'username' => $userRecharge->customer->username,
+            'plan_name' => $userRecharge->plan->name,
+            'price' => $userRecharge->plan->price,
+            'recharged_at' => $userRecharge->recharged_at,
+            'expired_at' => $userRecharge->expired_at,
+            'method' => "$rechargeGateway->value - $channel",
+            'routers' => $userRecharge->router->name,
+            'type' => $userRecharge->plan->type,
+        ]);
+
+        return true;
     }
     
     /**
