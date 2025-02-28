@@ -18,5 +18,4 @@ enum UpgradeType: string
             self::DEACTIVATE => 'Nonaktifkan layanan',
         };
     }
-
 }

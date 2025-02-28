@@ -45,13 +45,21 @@
                         </div>
                     </div>
 
-                    <x-form.group.input name="plan_type" label="Type" required :readonly="true" :value="@$user['plan_type'] ?? @$defaultPlanType?->value" />
+                    {{-- <x-form.group.input name="plan_type" label="Type" required :readonly="true" :value="@$user['plan_type'] ?? @$defaultPlanType?->value" /> --}}
+                    <x-form.group.select name="plan_type" label="Type" :options="$planTypes" required
+                        :value="@$user['plan_type'] ?? @$defaultPlanType?->value" :readonly="true" />
 
-                    <x-form.group.input name="router_id" label="Routers" required :readonly="true"
-                        :value="@$user->plan->router['name'] ?? ''" />
+                    {{-- <x-form.group.input name="router_id" label="Routers" required :readonly="true"
+                        :value="@$user->plan->router['name'] ?? ''" /> --}}
 
-                    <x-form.group.input name="server_id" label="Server" required :readonly="true"
-                        :value="@$user->server['name'] ?? ''" />
+                    <x-form.group.select name="router_id" label="Routers" :options="$routerOptions" required :readonly="true"
+                        :value="@$user->plan->router['id'] ?? ''" />
+
+                    {{-- <x-form.group.input name="server_id" label="Server" required :readonly="true"
+                        :value="@$user->server['name'] ?? ''" /> --}}
+
+                    <x-form.group.select name="server_id" label="Server" :options="$serverOptions" required :readonly="true"
+                        :value="@$user->server['id'] ?? ''" />
 
                     <x-form.group.input name="username" label="Username" required :readonly="true"
                         :value="@$user['username'] ?? ''" />
@@ -67,11 +75,19 @@
                                 @if ($mode == 'edit') text-muted @endif">Current
                                 Package</label>
 
-                            <x-form.group.input name="plan_id" label="Service Plan" :readonly="true"
-                                :value="@$user->plan['name'] ?? ''" />
+                            {{-- <x-form.group.input name="plan_id" label="Service Plan" :readonly="true"
+                                :value="@$user->plan['name'] ?? ''" /> --}}
 
-                            <x-form.group.input name="validity_cycle" label="Siklus Layanan" :readonly="true"
-                                :value="@$user['validity_cycle']" />
+                            <x-form.group.select name="plan_id" label="Service Plan" :options="$planOptions" required
+                                :value="@$user['plan_id']" :readonly="true" />
+
+                            {{-- <x-form.group.input name="validity_cycle" label="Siklus Layanan" :readonly="true"
+                                :value="@$user['validity_cycle']" /> --}}
+
+                            <x-form.group.select name="validity_cycle" label="Siklus Layanan" :options="$validityCycles"
+                                required :value="@$user['validity_cycle']" :readonly="true" />
+
+                            
 
                             @if ($mode == 'edit')
                                 <x-form.group.input :disabled="true" name="Tanggal " type="datetime-local"
