@@ -7,7 +7,7 @@ enum UpgradeType: string
     case UPGRADE = 'UPGRADE';
     case DOWNGRADE = 'DOWNGRADE';
     case RECHARGE = 'RECHARGE';
-    case DEACTIVATE = 'DEACTIVATE';
+    // case DEACTIVATE = 'DEACTIVATE';
 
     public function description(): string
     {
@@ -15,7 +15,7 @@ enum UpgradeType: string
             self::UPGRADE => 'Meningkatkan level paket layanan',
             self::DOWNGRADE => 'Menurunkan level paket layanan',
             self::RECHARGE => 'Perpanjang masa aktif layanan',
-            self::DEACTIVATE => 'Nonaktifkan layanan',
+            // self::DEACTIVATE => 'Nonaktifkan layanan',
         };
     }
 }

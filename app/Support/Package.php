@@ -15,211 +15,183 @@ use App\Models\UserRecharge;
 
 class Package
 {
-    public static function rechargeUser(Customer $customer, Router $mikrotik, Plan $plan, RechargeGateway $gateway, string $channel, string $serviceNumber = null, $validityCycle = null, $expiredAt = null, $username = null, $pppoePassword = null, $server_id = null)
-    {
-
-        if ($serviceNumber == null) {
-            $prefix = '00000';
-            $serviceNumber = date('y');
-            $serviceNumber .= (strlen($prefix) > strlen($customer->id) ? substr($prefix, 0, strlen($prefix) - strlen($customer->id)) : '') . $customer->id;
-            $prefix2 = '00';
-            $serviceCount = UserRecharge::where('customer_id', $customer->id)->count() + 1;
-            $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
-        }
-
+    public static function rechargeUser(
+        Customer $customer,
+        Router $mikrotik,
+        Plan $plan,
+        RechargeGateway $gateway,
+        string $channel,
+        string $serviceNumber = null,
+        $validityCycle = null,
+        $expiredAt = null,
+        String $username = null,
+        String $pppoePassword = null,
+        $server_id = null
+    ) {
         $date_now = now();
+        $serviceNumber = $serviceNumber ?? static::generateServiceNumber($customer);
+        
         $userRecharge = UserRecharge::where([
             'customer_id' => $customer->id,
             'router_id' => $mikrotik->id,
         ])->first();
+    
+        $date_exp = $expiredAt ?? static::calculateExpiration($plan, $validityCycle, $userRecharge);
+    
+        if (!$plan->is_radius) {
+            static::createMikrotikAccount($mikrotik, $customer, $plan, $username, $pppoePassword);
+        } else {
+            // TODO: Handle radius integration
+        }
+    
+        return static::createUserRecharge(
+            $customer,
+            $mikrotik,
+            $plan,
+            $gateway,
+            $channel,
+            $serviceNumber,
+            $date_now,
+            $date_exp,
+            $validityCycle,
+            $username,
+            $pppoePassword,
+            $server_id
+        );
+    }
+    
+    /**
+     * Handles the creation or update of the UserRecharge and Transaction records.
+     */
+    private static function createUserRecharge(
+        Customer $customer,
+        Router $mikrotik,
+        Plan $plan,
+        RechargeGateway $gateway,
+        string $channel,
+        string $serviceNumber,
+        $date_now,
+        $date_exp,
+        $validityCycle,
+        $username,
+        $pppoePassword,
+        $server_id
+    ) {
+        $userRecharge = UserRecharge::where([
+            'customer_id' => $customer->id,
+            'router_id' => $mikrotik->id,
+        ])->first();
+    
+        if ($userRecharge) {
+            // Extend validity if same plan is active
+            if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
+                $date_exp = static::extendExpiration($userRecharge, $plan, $validityCycle);
+            }
+    
+            $userRecharge->update([
+                'recharged_at' => $date_now,
+                'expired_at' => $date_exp,
+                'status' => 'on',
+                'method' => "$gateway->value - $channel",
+                'plan_id' => $plan->id,
+                'namebp' => $plan->name,
+            ]);
+        } else {
+            UserRecharge::create([
+                'customer_id' => $customer->id,
+                'username' => $username ?? $customer->username,
+                'pppoe_password' => $pppoePassword,
+                'plan_id' => $plan->id,
+                'namebp' => $plan->name,
+                'recharged_at' => $date_now,
+                'expired_at' => $date_exp,
+                'status' => 'on',
+                'method' => "$gateway->value - $channel",
+                'router_id' => $mikrotik->id,
+                'type' => $plan->type,
+                'service_number' => $serviceNumber,
+                'validity_cycle' => $validityCycle,
+                'server_id' => $server_id,
+            ]);
+        }
+    
+        // Transaction::create([
+        //     'invoice' => 'INV-' . Package::_raid(5),
+        //     'username' => $customer->username,
+        //     'plan_name' => $plan->name,
+        //     'price' => $plan->price,
+        //     'recharged_at' => $date_now,
+        //     'expired_at' => $date_exp,
+        //     'method' => "$gateway->value - $channel",
+        //     'routers' => $mikrotik->name,
+        //     'type' => $plan->type,
+        // ]);
+    
+        return true;
+    }
 
-        $date_exp = $expiredAt ?? match ($plan->validity_unit) {
+    //create transaction
+
+    
+    /**
+     * Creates a new MikroTik account (Hotspot or PPPoE).
+     */
+    private static function createMikrotikAccount(
+        Router $mikrotik,
+        Customer $customer,
+        Plan $plan,
+        $username,
+        $pppoePassword
+    ) {
+        $client = static::resetCustomerMikrotik($mikrotik, $customer);
+    
+        if ($plan->type == PlanType::HOTSPOT) {
+            Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
+        } else {
+            Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
+        }
+    }
+    
+    /**
+     * Generates a unique service number.
+     */
+    private static function generateServiceNumber(Customer $customer)
+    {
+        $prefix = '00000';
+        $serviceNumber = date('y');
+        $serviceNumber .= substr($prefix, 0, max(0, strlen($prefix) - strlen($customer->id))) . $customer->id;
+        $prefix2 = '00';
+        $serviceCount = UserRecharge::where('customer_id', $customer->id)->count() + 1;
+        $serviceNumber .= substr($prefix2, 0, max(0, strlen($prefix2) - strlen($serviceCount))) . $serviceCount;
+    
+        return $serviceNumber;
+    }
+    
+    /**
+     * Calculates the expiration date.
+     */
+    private static function calculateExpiration(Plan $plan, $validityCycle, $userRecharge)
+    {
+        return match ($plan->validity_unit) {
             ValidityUnit::MONTHS => now()->addMonths($plan->validity),
             ValidityUnit::DAYS => now()->addDays($plan->validity),
             ValidityUnit::HRS => now()->addHours($plan->validity),
             ValidityUnit::MINS => now()->addMinutes($plan->validity),
             default => throw new PackageRechargeException('Invalid validity unit')
         };
-
-        
-
-
-        if ($plan->type == PlanType::HOTSPOT) {
-            if ($userRecharge) {
-                if ($plan->is_radius) {
-                    //TODO: radues add customer plan
-                } else {
-                    $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
-                }
-
-                //extend the date if it's the same plan.
-                if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
-                    $date_exp = match ($validityCycle) {
-                        ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
-                        default => match ($plan->validity_unit) {
-                            ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
-                            ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
-                            ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
-                            ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
-                            default => throw new PackageRechargeException('Invalid validity unit')
-                        }
-                    };
-                }
-
-                $userRecharge->customer_id = $customer->id;
-                $userRecharge->username = $customer->username;
-                $userRecharge->plan_id = $plan->id;
-                $userRecharge->namebp = $plan->name;
-                $userRecharge->recharged_at = $date_now;
-                $userRecharge->expired_at = $date_exp;
-                $userRecharge->status = 'on';
-                $userRecharge->method = "$gateway->value - $channel";
-                $userRecharge->router_id = $mikrotik->id;
-                $userRecharge->type = PlanType::HOTSPOT;
-                $userRecharge->service_number = $serviceNumber;
-                $userRecharge->save();
-
-                Transaction::create([
-                    'invoice' => 'INV-' . Package::_raid(5),
-                    'username' => $customer->username,
-                    'plan_name' => $plan->name,
-                    'price' => $plan->price,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'method' => "$gateway->value - $channel",
-                    'routers' => $mikrotik->name,
-                    'type' => PlanType::HOTSPOT,
-                ]);
-            } else {
-                if ($plan->is_radius) {
-                    // TODO: radius add customer plan
-                } else {
-                    $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addHotspotUser($client, $plan, $customer, $username, $pppoePassword);
-                }
-
-                UserRecharge::create([
-                    'customer_id' => $customer->id,
-                    'username' => $username ?? $customer->username,
-                    'pppoe_password' => $pppoePassword,
-                    'plan_id' => $plan->id,
-                    'namebp' => $plan->name,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'status' => 'on',
-                    'method' => "$gateway->value - $channel",
-                    'router_id' => $mikrotik->id,
-                    'type' => PlanType::HOTSPOT,
-                    'service_number' => $serviceNumber,
-                    'validity_cycle' => $validityCycle,
-                    'server_id' => $server_id,
-                ]);
-
-                Transaction::create([
-                    'invoice' => 'INV-' . Package::_raid(5),
-                    'username' => $customer->username,
-                    'plan_name' => $plan->name,
-                    'price' => $plan->price,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'method' => "$gateway->value - $channel",
-                    'routers' => $mikrotik->name,
-                    'type' => PlanType::HOTSPOT,
-                ]);
-            }
-            // end if type hotspot
-        } else {
-            if ($userRecharge) {
-                if ($plan->is_radius) {
-                    // TODO: radues customer add plan
-                } else {
-                    $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
-                }
-
-                if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
-                    // if it same internet plan, extend the expiration
-                    $date_exp = match ($validityCycle) {
-                        ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
-                        default => match ($plan->validity_unit) {
-                            ValidityUnit::MONTHS => $userRecharge->expired_at->addMonths($plan->validity),
-                            ValidityUnit::DAYS => $userRecharge->expired_at->addDays($plan->validity),
-                            ValidityUnit::HRS => $userRecharge->expired_at->addHours($plan->validity),
-                            ValidityUnit::MINS => $userRecharge->expired_at->addMinutes($plan->validity),
-                            default => throw new PackageRechargeException('Invalid validity unit')
-                        }
-                    };
-                }
-
-                $userRecharge->customer_id = $customer->id;
-                $userRecharge->username = $customer->username;
-                $userRecharge->plan_id = $plan->id;
-                $userRecharge->namebp = $plan->name;
-                $userRecharge->recharged_at = $date_now;
-                $userRecharge->expired_at = $date_exp;
-                $userRecharge->status = 'on';
-                $userRecharge->method = "$gateway->value - $channel";
-                $userRecharge->router_id = $mikrotik->id;
-                $userRecharge->type = PlanType::PPPOE;
-                $userRecharge->service_number = $serviceNumber;
-                $userRecharge->save();
-
-                Transaction::create([
-                    'invoice' => 'INV-' . Package::_raid(5),
-                    'username' => $customer->username,
-                    'plan_name' => $plan->name,
-                    'price' => $plan->price,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'method' => "$gateway->value - $channel",
-                    'routers' => $mikrotik->name,
-                    'type' => PlanType::PPPOE,
-                ]);
-            } else {
-                // if empty $userRecharge
-                if ($plan->is_radius) {
-                    //TODO: radues customer add plan
-                } else {
-                    $client = static::resetCustomerMikrotik($mikrotik, $customer);
-                    Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
-                }
-
-                UserRecharge::create([
-                    'customer_id' => $customer->id,
-                    'username' => $username ?? $customer->username,
-                    'pppoe_password' => $pppoePassword,
-                    'plan_id' => $plan->id,
-                    'namebp' => $plan->name,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'status' => 'on',
-                    'method' => "$gateway->value - $channel",
-                    'router_id' => $mikrotik->id,
-                    'type' => PlanType::PPPOE,
-                    'service_number' => $serviceNumber,
-                    'validity_cycle' => $validityCycle,
-                    'server_id' => $server_id,
-                ]);
-
-                Transaction::create([
-                    'invoice' => 'INV-' . Package::_raid(5),
-                    'username' => $customer->username,
-                    'plan_name' => $plan->name,
-                    'price' => $plan->price,
-                    'recharged_at' => $date_now,
-                    'expired_at' => $date_exp,
-                    'method' => "$gateway->value - $channel",
-                    'routers' => $mikrotik->name,
-                    'type' => PlanType::PPPOE,
-                ]);
-            }
-
-            // $invoice = Transaction::where('username',$customer->username)->latest('id')->first();
-            // TODO: send invoice
-            return true;
-        }
     }
+    
+    /**
+     * Extends the expiration date if the user has an active plan.
+     */
+    private static function extendExpiration(UserRecharge $userRecharge, Plan $plan, $validityCycle)
+    {
+        return match ($validityCycle) {
+            ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
+            default => static::calculateExpiration($plan, $validityCycle, $userRecharge),
+        };
+    }
+    
 
     public static function changeTo(Customer $customer, Plan $plan, UserRecharge $userRecharge, String $username, String $pppoePassword)
     {

@@ -93,7 +93,7 @@
                                 <x-form.group.input :disabled="true" name="Tanggal " type="datetime-local"
                                     :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Activation Date" />
                                 <x-form.group.input name="expired_at" :disabled="true" type="datetime-local"
-                                    :value="@$user['created_at']->format('Y-m-d H:i') ?? ''" label="Expired Date" />
+                                    :value="@$user['expired_at']->format('Y-m-d H:i') ?? ''" label="Expired Date" />
                             @else
                                 <x-form.group.input name="active_at" type="datetime-local" label="Activation Date"
                                     value="{{ now()->format('Y-m-d\TH:i') }}" />

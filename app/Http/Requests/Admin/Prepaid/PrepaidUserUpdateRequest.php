@@ -30,10 +30,11 @@ class PrepaidUserUpdateRequest extends FormRequest
         return [
             'customer_id' => ['required', Rule::exists(Customer::class, 'id')],
             'upgrade_type' => ['required', Rule::enum(UpgradeType::class)],
-            'new_plan_id' => [
-                Rule::requiredIf(fn() => $this->input('upgrade_type') !== UpgradeType::DEACTIVATE->value),
-                Rule::exists(Plan::class, 'id')
-            ],
+            // 'new_plan_id' => [
+            //     Rule::requiredIf(fn() => $this->input('upgrade_type') !== UpgradeType::DEACTIVATE->value),
+            //     Rule::exists(Plan::class, 'id')
+            // ],
+            'new_plan_id' => ['required', Rule::exists(Plan::class, 'id')],
             'router_id' => ['required', Rule::exists(Router::class, 'id')],
             'plan_id' => ['required', Rule::exists(Plan::class, 'id')],
             'username' => ['required', Rule::exists(UserRecharge::class, 'username')],

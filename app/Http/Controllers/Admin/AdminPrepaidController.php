@@ -117,9 +117,6 @@ class AdminPrepaidController extends Controller
 
     public function storeUser(PrepaidUserRequest $request)
     {
-
-        
-
         $customer = Customer::findOrFail($request->customer_id);
         $router = Router::findOrFail($request->router_id);
         $plan = Plan::findOrFail($request->plan_id);
@@ -127,7 +124,10 @@ class AdminPrepaidController extends Controller
         $password = $request->pppoe_password;
         $server_id = $request->server_id;
 
-        // dd($request->all());
+        // create transaction
+        // $trx = $this->createUserTransaction($customer, $plan);
+
+        dd($request->all());
         Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
@@ -137,37 +137,71 @@ class AdminPrepaidController extends Controller
         return redirect()->route('admin:prepaid.invoice.show', $invoice);
     }
 
+    public function createUserTransaction(Customer $customer, Plan $plan)
+    {
+        $activeGateway = Config::get('active_payment_gateway');
+        if (empty($activeGateway)) {
+            $activeGateway = 'xendit';
+        }
+        $error = null;
+        if ($activeGateway === 'xendit') {
+            Xendit::validateConfig();
+        } elseif ($activeGateway === 'tripay') {
+            Tripay::validateConfig();
+        } else {
+            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        }
+
+        $order = PaymentGateway::where('username', $customer->username)
+            ->where('status', PaymentGatewayStatus::UNPAID)
+            ->first();
+        
+        // Check for existing unpaid transaction
+        if ($order && $order->pg_url_payment) {
+            return false;
+        }
+
+        if (empty($order)) {
+            $order = PaymentGateway::create([
+                'username' => $customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $plan->id,
+                'plan_name' => $plan->name,
+                'router_id' => $plan->router->id,
+                'router_name' => $plan->router->name,
+                'price' => $plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        } else {
+            $order->update([
+                'username' => $customer->username,
+                'gateway' => $activeGateway,
+                'plan_id' => $plan->id,
+                'plan_name' => $plan->name,
+                'router_id' => $plan->router->id,
+                'router_name' => $plan->router->name,
+                'price' => $plan->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+            ]);
+        }
+
+        return $activeGateway === 'xendit'
+            ? Xendit::createTransaction($order, $customer)
+            : Tripay::createTransaction($order, $customer);
+    }
+
     public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
-
-        // $activeGateway = Config::get('active_payment_gateway');
-        // if (empty($activeGateway)) {
-        //     $activeGateway = 'tripay';
-        // }
-
-        // // Validate selected payment gateway config
-        // if ($activeGateway === 'xendit') {
-        //     Xendit::validateConfig();
-        // } elseif ($activeGateway === 'tripay') {
-        //     Tripay::validateConfig();
-        // } else {
-        //     return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
-        // }
-
-        // // Check for existing unpaid transaction
-        // $order = PaymentGateway::where('username', $user->username)
-        //     ->where('status', PaymentGatewayStatus::UNPAID)
-        //     ->first();
-
 
         // dd($activeGateway);
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
         $newPlan = Plan::findOrFail($request->new_plan_id);
+
         $user->plan_id = $newPlan->id;
         $user->expired_at = match ($request->upgrade_type) {
             UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
-            UpgradeType::DEACTIVATE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' -1 day')),
+            // UpgradeType::DEACTIVATE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' -1 day')),
             default => $user->expired_at,
         };
         $user->save();
