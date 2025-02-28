@@ -69,6 +69,7 @@ class PaymentXenditRepository
             'success_redirect_url' => route('customer:order.check', $trx),
             'failure_redirect_url' => route('customer:order.check', $trx),
         ];
+        
         $result = Http::withBasicAuth($this->config->get('xendit_secret_key'), '')
             ->post($this->baseUrl.'/invoices', $json)->collect();
         if (! $result->get('id')) {
@@ -98,7 +99,7 @@ class PaymentXenditRepository
 
         if (in_array($result['status'], ['PAID', 'SETTLED']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
-                Package::rechargeUser($user, $trx->router, $trx->plan, RechargeGateway::XENDIT, $result['payment_channel']);
+                Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel']);
             } catch (Exception $e) {
                 throw new AppException('Failed to activate your package, please try again');
             }

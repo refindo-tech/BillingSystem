@@ -13,6 +13,7 @@ class PaymentGateway extends Model
 
     protected $fillable = [
         'username',
+        'user_recharge_id',
         'gateway',
         'gateway_trx_id',
         'plan_id',
@@ -45,4 +46,10 @@ class PaymentGateway extends Model
     {
         return $this->belongsTo(Plan::class);
     }
+
+    public function userRecharge(): BelongsTo
+    {
+        return $this->belongsTo(UserRecharge::class);
+    }
+
 }

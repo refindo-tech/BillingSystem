@@ -112,7 +112,7 @@ class PaymentTripayRepository
 
         if (in_array($status, ['PAID', 'SUCCESS']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
-                Package::rechargeUser($user, $trx->router, $trx->plan, RechargeGateway::TRIPAY, $result['data']['payment_method']);
+                Package::activatePackage($trx->userRecharge, RechargeGateway::TRIPAY, $result['payment_channel']);
             } catch (Exception $e) {
                 throw new AppException('Failed to activate your package, please try again.');
             }
