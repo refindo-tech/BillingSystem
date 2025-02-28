@@ -13,6 +13,7 @@ use App\Enum\ValidityUnit;
 use App\Enum\UpgradeType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
+use App\Http\Requests\Admin\Prepaid\PrepaidUserUpdateRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidVoucherRequest;
 use App\Models\Customer;
 use App\Models\Plan;
@@ -74,23 +75,40 @@ class AdminPrepaidController extends Controller
     public function editUser(UserRecharge $user)
     {
         $mode = 'edit';
-        $customers = Customer::where('id', $user->customer_id)->get()->mapWithKeys(fn ($customer) => [
+        $customer = Customer::findOrFail($user->customer_id);
+        $customers = [
             $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
-        ]);
-        
+        ];
+
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
-        $defaultPlanType = $user->plan->type;
-        $defaultRouterId = $user->plan->router_id;
-        $serviceNumber = $user->service_number;
+        $planOptions = Plan::where('type', $user->plan->type)
+            ->where('router_id', $user->router_id)
+            ->get()
+            ->mapWithKeys(fn ($plan) => [
+                $plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price),
+            ]);
+
+        $routerOptions = Router::all()->mapWithKeys(fn ($router) => [
+            $router->id => $router->name.' - '.$router->ip_address,
+        ]);
+
+        $serverOptions = Server::where('router_id', $user->router_id)->get()->mapWithKeys(fn ($server) => [
+            $server->id => $server->name,
+        ]);
+
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
-        $defaultValidityCycle = $user->validity_cycle;
+        $upgradeTypes = array_map(fn ($value) => $value . ' - ' . UpgradeType::from($value)->description(), array_column(UpgradeType::cases(), 'value', 'value'));
 
-        $upgradeTypes = array_column(UpgradeType::cases(), 'value', 'value');
-        $upgradeTypes = array_map(function ($value) {
-            return $value . ' - ' . UpgradeType::from($value)->description();
-        }, $upgradeTypes);
-
-        return view('admin.prepaid.user.form-update', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'defaultRouterId', 'serviceNumber', 'validityCycles', 'defaultValidityCycle', 'upgradeTypes'));
+        return view('admin.prepaid.user.form-update', compact(
+            'mode', 'customers', 'planTypes', 'planOptions', 'routerOptions', 'serverOptions', 'validityCycles', 'upgradeTypes'
+        ))->with([
+            'defaultPlanType' => $user->plan->type,
+            'defaultRouterId' => $user->plan->router_id,
+            'serviceNumber' => $user->service_number,
+            'defaultValidityCycle' => $user->validity_cycle,
+            'defaultUpgradeType' => UpgradeType::RECHARGE,
+            'user' => $user,
+        ]);
     }
 
     public function storeUser(PrepaidUserRequest $request)
@@ -115,8 +133,11 @@ class AdminPrepaidController extends Controller
         return redirect()->route('admin:prepaid.invoice.show', $invoice);
     }
 
-    public function updateUser(PrepaidUserRequest $request, UserRecharge $user)
+    public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
+
+        dd($request->all());
+
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
         $user->plan_id = $request->plan_id;
