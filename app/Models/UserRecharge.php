@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\PlanType;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,5 +57,32 @@ class UserRecharge extends Model
     public function getIsActiveAttribute(): bool
     {
         return $this->status === 'on';
+    }
+
+    // Scope untuk pengguna yang masuk kondisi isolir
+    public function scopeIsolir($query)
+    {
+        return $query->where('expired_at', '<', Carbon::now())
+            ->orWhere('status', 'off');
+    }
+
+    // Mengecek apakah pelanggan masuk status isolir
+    public function isIsolir()
+    {
+        return Carbon::now()->gt(Carbon::parse($this->expired_at)) || $this->status == 'off';
+    }
+
+    // Mengecek apakah pelanggan masuk kondisi tagihan (kurang dari 7 hari sebelum expired)
+    public function isTagihan()
+    {
+        return Carbon::now()->diffInDays(Carbon::parse($this->expired_at), false) <= 7;
+    }
+
+    // Mengecek apakah pelanggan sudah menerima pesan penagihan sebelumnya
+    public function hasReceivedMessage($type)
+    {
+        return WhatsappMessage::where('phone', $this->customer->phonenumber)
+            ->where('message', 'LIKE', "%$type%")
+            ->exists();
     }
 }

@@ -9,11 +9,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Setting\SettingUserRequest;
 use App\Http\Requests\Admin\Setting\SettingXenditRequest;
 use App\Http\Requests\Admin\Setting\SettingTripayRequest;
+use App\Models\KeyWhatsapp;
 use App\Models\User;
 use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 
 class AdminSettingController extends Controller
 {
@@ -43,7 +46,7 @@ class AdminSettingController extends Controller
         $tripay = [
             'tripay_api_key'      => Config::get('tripay_api_key'),
             'tripay_private_key'  => Config::get('tripay_private_key'),
-            'tripay_merchant_code'=> Config::get('tripay_merchant_code'),
+            'tripay_merchant_code' => Config::get('tripay_merchant_code'),
             'tripay_channels'     => Config::get('tripay_channels') ? explode(',', Config::get('tripay_channels')) : [],
         ];
         $activeGateway = Config::get('active_payment_gateway');
@@ -53,7 +56,7 @@ class AdminSettingController extends Controller
 
     public function updateTripay(SettingTripayRequest $request)
     {
-        
+
         Tripay::updateConfig($request->validated());
 
         return redirect()->back()->with('success', 'Tripay setting has been updated');
@@ -71,7 +74,7 @@ class AdminSettingController extends Controller
         $tripay = [
             'tripay_api_key'      => Config::get('tripay_api_key'),
             'tripay_private_key'  => Config::get('tripay_private_key'),
-            'tripay_merchant_code'=> Config::get('tripay_merchant_code'),
+            'tripay_merchant_code' => Config::get('tripay_merchant_code'),
             'tripay_channels'     => Config::get('tripay_channels') ? explode(',', Config::get('tripay_channels')) : [],
         ];
 
@@ -81,7 +84,10 @@ class AdminSettingController extends Controller
             'xendit_channels' => Config::get('xendit_channels') ? explode(',', Config::get('xendit_channels')) : [],
         ];
 
-        return view('admin.setting.payment-gateway', compact('tripayChannels', 'xenditChannels', 'tripay', 'xendit', 'activeGateway'));
+        // whatsapp
+        $keyWhatsapp = KeyWhatsapp::first();
+
+        return view('admin.setting.payment-gateway', compact('tripayChannels', 'xenditChannels', 'tripay', 'xendit', 'activeGateway', 'keyWhatsapp'));
     }
 
     public function setActiveGateway(Request $request)
@@ -89,11 +95,101 @@ class AdminSettingController extends Controller
         $request->validate([
             'gateway' => 'required|in:xendit,tripay',
         ]);
-        
+
         Config::set('active_payment_gateway', $request->gateway);
 
         return redirect()->back()->with('success', ucfirst($request->gateway) . ' has been set as the active payment gateway');
     }
+
+    public function whatsappGateway(Request $request)
+    {
+        $validator = Validator::make($request->all(), ([
+            'fonnte_key_device' => 'required|string',
+            'fonnte_key_account' => 'string',
+            'phone' => 'required|numeric',
+        ]));
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator);
+        }
+
+        // Jika API Key valid, lanjut simpan ke database
+        $keyWhatsapp = KeyWhatsapp::first(); // Ambil data pertama jika ada
+
+        if ($keyWhatsapp) {
+            // Jika sudah ada, update
+            $keyWhatsapp->update([
+                'key_device' => $request->fonnte_key_device,
+                'key_account' => $request->fonnte_key_account,
+                'phone' => $request->phone,
+            ]);
+        } else {
+            // Jika belum ada, tambahkan baru
+            KeyWhatsapp::create([
+                'key_device' => $request->fonnte_key_device,
+                'key_account' => $request->fonnte_key_account,
+                'phone' => $request->phone,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'WhatsApp Gateway successfully updated and connected to Fonte!');
+    }
+
+    public function checkWhatsappStatus()
+    {
+        $keyWhatsapp = KeyWhatsapp::first();
+
+        if (!$keyWhatsapp) {
+            return back()->with('error', 'Belum ada API Key yang disimpan.');
+        }
+
+        $response = $keyWhatsapp->checkDeviceStatus();
+
+        if ($response['status'] === true) {
+            $keyWhatsapp->update(['status' => $response['device_status']]);
+            return back()->with('success', 'Status perangkat diperbarui: ' . $response['device_status']);
+        } else {
+            return back()->with('error', 'Gagal mendapatkan status perangkat.');
+        }
+    }
+
+    // public function connectWhatsapp()
+    // {
+    //     $keyWhatsapp = KeyWhatsapp::first();
+
+    //     if (!$keyWhatsapp) {
+    //         return back()->with('error', 'Belum ada API Key yang disimpan.');
+    //     }
+
+    //     $response = $keyWhatsapp->connectDevice();
+
+    //     if ($response['status'] === true) {
+    //         $keyWhatsapp->update(['status' => 'connected']);
+    //         return back()->with('success', 'Perangkat berhasil dikoneksikan.');
+    //     } else {
+    //         return back()->with('error', 'Gagal menghubungkan perangkat: ' . ($response['detail'] ?? 'Terjadi kesalahan.'));
+    //     }
+    // }
+
+    // public function disconnectWhatsapp()
+    // {
+    //     $keyWhatsapp = KeyWhatsapp::first();
+
+    //     if (!$keyWhatsapp) {
+    //         return back()->with('error', 'Belum ada API Key yang disimpan.');
+    //     }
+
+    //     $response = $keyWhatsapp->disconnectDevice();
+
+    //     if ($response['status'] === true) {
+    //         $keyWhatsapp->update(['status' => 'disconnected']);
+    //         return back()->with('success', 'Perangkat berhasil diputuskan.');
+    //     } else {
+    //         return back()->with('error', 'Gagal memutuskan perangkat: ' . ($response['detail'] ?? 'Terjadi kesalahan.'));
+    //     }
+    // }
+
+
 
     public function general()
     {
@@ -140,7 +236,7 @@ class AdminSettingController extends Controller
     public function createUser()
     {
         $mode = 'add';
-        $userTypes = collect(UserType::cases())->flatMap(fn ($type) => [$type->value => $type->label()]);
+        $userTypes = collect(UserType::cases())->flatMap(fn($type) => [$type->value => $type->label()]);
 
         return view('admin.setting.user.form', compact('mode', 'userTypes'));
     }
@@ -162,7 +258,7 @@ class AdminSettingController extends Controller
     public function editUser(User $user)
     {
         $mode = 'edit';
-        $userTypes = collect(UserType::cases())->flatMap(fn ($type) => [$type->value => $type->label()]);
+        $userTypes = collect(UserType::cases())->flatMap(fn($type) => [$type->value => $type->label()]);
 
         return view('admin.setting.user.form', compact('mode', 'userTypes', 'user'));
     }

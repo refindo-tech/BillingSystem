@@ -127,7 +127,7 @@ class AdminPrepaidController extends Controller
         // create transaction
         // $trx = $this->createUserTransaction($customer, $plan);
 
-        dd($request->all());
+        // dd($request->all());
         Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();

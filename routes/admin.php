@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminServiceController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminTicketController;
+use App\Http\Controllers\AdminWhatsappController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -48,7 +49,7 @@ Route::name('admin:')->group(function () {
         Route::get('prepaid/user/expired-at', [AdminPrepaidController::class, 'expiredAt'])->name('prepaid.user.expired-at');
         Route::get('prepaid/invoice/{invoice}/show', [AdminPrepaidController::class, 'showInvoice'])->name('prepaid.invoice.show');
         Route::get('prepaid/invoice/{invoice}/print', [AdminPrepaidController::class, 'printInvoice'])->name('prepaid.invoice.print');
-        
+
         // voucher
         Route::get('prepaid/voucher', [AdminPrepaidController::class, 'voucher'])->name('prepaid.voucher.index');
         Route::get('prepaid/voucher/add', [AdminPrepaidController::class, 'createVoucher'])->name('prepaid.voucher.create');
@@ -123,6 +124,25 @@ Route::name('admin:')->group(function () {
         Route::middleware('admin')->group(function () {
             Route::get('setting/payment-gateway', [AdminSettingController::class, 'paymentGateway'])->name('setting.payment-gateway');
             Route::put('setting/payment-gateway', [AdminSettingController::class, 'setActiveGateway'])->name('setting.payment-gateway.set-active');
+            // whatsapp gateway
+            Route::put('setting/whatsapp-gateway', [AdminSettingController::class, 'whatsappGateway'])->name('setting.whatsapp-gateway');
+            Route::get('setting/whatsapp-status', [AdminSettingController::class, 'checkWhatsappStatus'])->name('setting.whatsapp.status');
+            Route::post('setting/whatsapp-connect', [AdminSettingController::class, 'connectWhatsapp'])->name('setting.whatsapp.connect');
+            Route::post('setting/whatsapp-disconnect', [AdminSettingController::class, 'disconnectWhatsapp'])->name('setting.whatsapp.disconnect');
+            // whatsapp message
+            Route::get('setting/whatsapp', [AdminWhatsappController::class, 'index'])->name('setting.whatsapp.index');
+            Route::post('setting/whatsapp/send', [AdminWhatsappController::class, 'sendWhatsAppMessage'])->name('setting.whatsapp.send');
+            Route::post('setting/whatsapp/resend', [AdminWhatsappController::class, 'resendMessages'])->name('setting.whatsapp.resend');
+            Route::post('setting/whatsapp/delete', [AdminWhatsappController::class, 'deleteMessages'])->name('setting.whatsapp.delete');
+            Route::post('setting/whatsapp/clear', [AdminWhatsappController::class, 'clearHistory'])->name('setting.whatsapp.clear');
+            Route::post('setting/whatsapp/blast', [AdminWhatsappController::class, 'blast'])->name('setting.whatsapp.blast');
+            Route::post('setting/whatsapp/billing', [AdminWhatsappController::class, 'sendBillingNotification'])->name('setting.whatsapp.billing');
+            Route::post('setting/whatsapp/isolate', [AdminWhatsappController::class, 'sendIsolateNotification'])->name('setting.whatsapp.isolate');
+            // template whatsapp
+            Route::get('setting/whatsapp/template', [AdminWhatsappController::class, 'template'])->name('setting.whatsapp.template.index');
+            Route::post('setting/whatsapp/template', [AdminWhatsappController::class, 'storeTemplate'])->name('setting.whatsapp.template.store');
+
+            // xendit
             Route::get('setting/xendit', [AdminSettingController::class, 'xendit'])->name('setting.xendit');
             Route::put('setting/xendit', [AdminSettingController::class, 'updateXendit'])->name('setting.xendit.update');
             Route::get('setting/tripay', [AdminSettingController::class, 'tripay'])->name('setting.tripay');
