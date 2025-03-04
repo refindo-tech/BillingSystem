@@ -49,13 +49,20 @@ class AdminPrepaidController extends Controller
     {
 
         $activeGateway = Config::get('active_payment_gateway');
+        
         $channelsConfig = config("payment.{$activeGateway}.channels");
         $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
 
-        $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+        if (empty($paymentChannels[0])) {
+            $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
+            return [$channel['id'] => $channel['name']];
+            })->toArray();
+        } else {
+            $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
             $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
             return [$channel => $channelConfig['name']];
-        })->toArray();
+            })->toArray();
+        }
 
         // dd($activeChannels);
 
@@ -80,10 +87,16 @@ class AdminPrepaidController extends Controller
         $channelsConfig = config("payment.{$activeGateway}.channels");
         $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
 
-        $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+        if (empty($paymentChannels[0])) {
+            $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
+            return [$channel['id'] => $channel['name']];
+            })->toArray();
+        } else {
+            $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
             $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
             return [$channel => $channelConfig['name']];
-        })->toArray();
+            })->toArray();
+        }
 
         $mode = 'add';
         $customers = Customer::all()->mapWithKeys(fn ($customer) => [

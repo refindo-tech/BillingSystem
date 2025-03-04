@@ -163,7 +163,7 @@
                         </x-slot:description>
                     </x-form.group.input>
                     <x-form.group.input name="xendit_verification_token" :value="@$xendit['xendit_verification_token']"
-                        label="Verification Token" placeholder="randomstring">
+                        label="Verification Token" placeholder="randomstring" required>
                         <x-slot:description>
                             <a
                                 href="https://dashboard.xendit.co/settings/developers#callbacks">https://dashboard.xendit.co/settings/developers#callbacks</a>
