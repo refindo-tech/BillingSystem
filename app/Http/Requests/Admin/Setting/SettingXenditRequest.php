@@ -23,7 +23,7 @@ class SettingXenditRequest extends FormRequest
     {
         return [
             'xendit_secret_key' => ['required', 'string'],
-            'xendit_verification_token' => ['nullable', 'string'],
+            'xendit_verification_token' => ['required', 'string'],
             'xendit_channels' => ['nullable', 'array'],
         ];
     }
