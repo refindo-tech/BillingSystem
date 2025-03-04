@@ -96,10 +96,13 @@ public static function rechargeUser(
         $pppoePassword,
         $server_id
     ) {
-        $userRecharge = UserRecharge::where([
-            'customer_id' => $customer->id,
-            'router_id' => $mikrotik->id,
-        ])->first();
+
+        // $userRecharge = UserRecharge::where([
+        //     'customer_id' => $customer->id,
+        //     'router_id' => $mikrotik->id,
+        // ])->first();
+
+        $userRecharge = null;
 
         // dd($username, $pppoePassword, $plan->type, $plan->name, $date_now, $date_exp, $gateway->value, $channel, $mikrotik->id, $serviceNumber, $validityCycle, $server_id);
     
@@ -112,7 +115,7 @@ public static function rechargeUser(
             $userRecharge->update([
                 'recharged_at' => $date_now,
                 'expired_at' => $date_exp,
-                'status' => 'on',
+                'status' => 'off',
                 'method' => "$gateway->value - $channel",
                 'plan_id' => $plan->id,
                 'namebp' => $plan->name,

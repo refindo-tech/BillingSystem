@@ -218,7 +218,8 @@ class AdminPrepaidController extends Controller
                 Mikrotik::removePpoeActive($client, $user->username);
             }
         }
-        $user->delete();
+        PaymentGateway::where('user_recharge_id', $user->id)->delete();
+        $user->delete();   
         Log::put('Delete account '.$user->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.deleted'));

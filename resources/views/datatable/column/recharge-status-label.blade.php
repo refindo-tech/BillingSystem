@@ -1,6 +1,6 @@
 @php
     $label = match($status) {
-        'off' => 'Belum Aktif',
+        'off' => 'Tidak Aktif',
         'on' => 'Aktif',
         default => 'Unknown'
     };

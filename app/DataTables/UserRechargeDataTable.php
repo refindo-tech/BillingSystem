@@ -39,6 +39,7 @@ class UserRechargeDataTable extends DataTable
     {
         return $model->newQuery()
             ->with('plan:id,name,type')
+            ->with('customer:id,fullname')
             ->with('router:id,name');
     }
 
@@ -72,6 +73,7 @@ class UserRechargeDataTable extends DataTable
             Column::make('id')->hidden(),
             Column::make('service_number')->title('Nomor Layanan'),
             Column::make('username'),
+            Column::make('customer.fullname')->title('Nama Pelanggan'),
             Column::make('status'),
             Column::make('plan.name'),
             Column::make('plan.type'),

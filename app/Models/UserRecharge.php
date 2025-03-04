@@ -6,6 +6,7 @@ use App\Enum\PlanType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class UserRecharge extends Model
 {
@@ -53,8 +54,16 @@ class UserRecharge extends Model
         return $this->belongsTo(Server::class);
     }
 
+    public function paymentGateway(): HasOne
+    {
+        return $this->hasOne(PaymentGateway::class);
+    }
+
     public function getIsActiveAttribute(): bool
     {
         return $this->status === 'on';
     }
+
+
+
 }
