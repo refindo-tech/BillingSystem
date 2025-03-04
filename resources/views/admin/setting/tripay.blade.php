@@ -11,6 +11,13 @@
                     action="{{ route('admin:setting.tripay.update') }}">
                     @method('PUT')
                     @csrf
+
+                    <x-form.group.select name="tripay_environment" required :value="@$tripay['tripay_environment']"
+                        label="Environment">
+                        <option value="sandbox">Sandbox</option>
+                        <option value="production">Production</option>
+                    </x-form.group.select>
+
                     <x-form.group.input name="tripay_api_key" required :value="@$tripay['tripay_api_key']" label="API Key"
                         placeholder="your_tripay_api_key">
                         <x-slot:description>

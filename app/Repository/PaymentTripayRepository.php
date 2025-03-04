@@ -20,13 +20,20 @@ class PaymentTripayRepository
 
     public function __construct()
     {
-        $this->baseUrl = config('payment.tripay.sandbox_base_url');
+        
         $this->config = Config::all()->only([
             'tripay_api_key',
             'tripay_private_key',
             'tripay_merchant_code',
             'tripay_channels',
+            'tripay_environtment',
         ]);
+        // $this->baseUrl = config('payment.tripay.sandbox_base_url');
+        if ($this->config->get('tripay_environtment') === 'production') {
+            $this->baseUrl = config('payment.tripay.base_url');
+        } else {
+            $this->baseUrl = config('payment.tripay.sandbox_base_url');
+        }
     }
 
     public function updateConfig(array $data)
