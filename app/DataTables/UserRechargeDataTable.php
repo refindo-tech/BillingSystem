@@ -28,6 +28,7 @@ class UserRechargeDataTable extends DataTable
             ->editColumn('expired_at', function ($row) {
                 return Lang::dateTimeFormat($row->expired_at);
             })
+            ->editColumn('status', fn ($status) => view('datatable.column.recharge-status-label', $status))
             ->setRowId('id');
     }
 
@@ -71,6 +72,7 @@ class UserRechargeDataTable extends DataTable
             Column::make('id')->hidden(),
             Column::make('service_number')->title('Nomor Layanan'),
             Column::make('username'),
+            Column::make('status'),
             Column::make('plan.name'),
             Column::make('plan.type'),
             Column::make('created_at'),
