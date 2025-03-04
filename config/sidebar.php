@@ -243,6 +243,12 @@ return [
                             'icon' => 'two-credit-cart',
                         ],
                         [
+                            'name' => 'setting.whatsapp.index',
+                            'title' => 'Whatsapp',
+                            'url' => '/admin/setting/whatsapp',
+                            'icon' => 'whatsapp',
+                        ],
+                        [
                             'name' => 'setting.general',
                             'title' => 'General Settings',
                             'url' => '/admin/setting/general',

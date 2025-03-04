@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Storage;
 
 use App\Enum\TicketPriority;
 use App\Enum\TicketStatus;
+use App\Jobs\SendWhatsAppMessageJob;
+use App\Models\KeyWhatsapp;
+use App\Models\WhatsappMessage;
+use App\Models\WhatsAppTemplate;
 
 class AdminTicketController extends Controller
 {
@@ -58,23 +62,114 @@ class AdminTicketController extends Controller
 
         //ticket number is T + primary key of last ticket + 1
 
+        try {
 
-        $ticketData = $request->validated();
-        $ticketData['ticket_number'] = 'T' . (Ticket::max('id') + 1);
-        $ticketData['status'] = TicketStatus::OPEN;
+            $ticketData = $request->validated();
+            $ticketData['ticket_number'] = 'T' . (Ticket::max('id') + 1);
+            $ticketData['status'] = TicketStatus::OPEN;
 
-        Ticket::create($ticketData);
-        return redirect()->route('admin:ticket.index')->with('success', 'Ticket submitted successfully.');
+            $newTicket = Ticket::create($ticketData);
+
+            $ticket = Ticket::with('customer')->where('id', $newTicket->id)->first();
+
+            // Buat pesan berdasarkan template
+            $message = $this->generateTicketMessage($ticket);
+
+            // dd($message,$ticket->customer->phonenumber);
+
+            // Kirim pesan via WhatsApp jika nomor telepon tersedia
+            if (!empty($ticket->customer->phonenumber) && $message) {
+                $tokenDevice = KeyWhatsapp::first()->key_device;
+                SendWhatsAppMessageJob::dispatch($ticket->customer->phonenumber, $message, $tokenDevice);
+
+                // Simpan log pesan ke database
+                WhatsappMessage::create([
+                    'phone'   => $ticket->customer->phonenumber,
+                    'message' => $message,
+                    'date'    => now(),
+                    'status'  => 'sent',
+                ]);
+            }
+
+            return redirect()->route('admin:ticket.index')->with('success', 'Ticket submitted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
-    public function update(Ticket $ticket, AdminTicketRequest $request)
+    private function generateTicketMessage(Ticket $ticket)
     {
-        $ticket->update($request->validated());
-        return redirect()->route('admin:ticket.index')->with('success', 'Ticket updated successfully.');
+        // Ambil template pesan dari database berdasarkan tipe 'Tiket Baru'
+        $template = WhatsAppTemplate::where('type', 'opentiket')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOTIKET#'    => $ticket->ticket_number,
+            '#STATUS#'     => $ticket->status,
+            '#NAMAPELANGGAN#' => $ticket->customer->fullname,
+            '#SUBJECT#'    => $ticket->subject,
+            '#KELUHAN#'    => $ticket->message,
+            '#PRIORITAS#'  => $ticket->priority,
+        ];
+
+        // Mengganti placeholder dengan nilai dari tiket
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
 
-    public function close(Ticket $ticket)
+    private function generateDoneTicketMessage(Ticket $ticket)
     {
-        
+        // Ambil template pesan dari database berdasarkan tipe 'Tiket Baru'
+        $template = WhatsAppTemplate::where('type', 'closedtiket')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOTIKET#'    => $ticket->ticket_number,
+            '#STATUS#'     => $ticket->status,
+            '#NAMAPELANGGAN#' => $ticket->customer->fullname,
+            '#SUBJECT#'    => $ticket->subject,
+            '#KELUHAN#'    => $ticket->message,
+            '#PRIORITAS#'  => $ticket->priority,
+        ];
+
+        // Mengganti placeholder dengan nilai dari tiket
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
+
+
+    public function update(AdminTicketRequest $request, Ticket $ticket)
+    {
+        try {
+            // Update tiket dengan data yang divalidasi
+            $ticket->update($request->validated());
+
+            // Jika tiket ditutup, kirim notifikasi ke pelanggan
+            if ($ticket->status === 'closed') {
+                $message = $this->generateDoneTicketMessage($ticket);
+
+                // Kirim pesan via WhatsApp jika nomor telepon tersedia
+                $customerPhone = $ticket->customer->phonenumber;
+                if (!empty($customerPhone) && $message) {
+                    $tokenDevice = KeyWhatsapp::first()->key_device;
+                    SendWhatsAppMessageJob::dispatch($customerPhone, $message, $tokenDevice);
+
+                    // Simpan log pesan ke database
+                    WhatsappMessage::create([
+                        'phone'   => $customerPhone,
+                        'message' => $message,
+                        'date'    => now(),
+                        'status'  => 'sent',
+                    ]);
+                }
+            }
+
+            return redirect()->route('admin:ticket.index')->with('success', 'Tiket berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+
+    public function close(Ticket $ticket) {}
 }
