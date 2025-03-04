@@ -14,6 +14,7 @@ use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 use App\Models\Customer;
 
+
 use Illuminate\Support\Collection;
 
 class CustomerOrderController extends Controller
@@ -89,6 +90,7 @@ class CustomerOrderController extends Controller
 
     public function detail(PaymentGateway $order)
     {
+
         if (empty($order->pg_url_payment)) {
             return redirect()->route('customer:order.buy', $order->plan)->with('error', 'Checking Payment');
         }

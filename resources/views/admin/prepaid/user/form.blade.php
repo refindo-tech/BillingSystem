@@ -24,6 +24,10 @@
                         tooltip="2 digit tahun + ID pelanggan + 2 digit urutan layanan by pelanggan."
                         :value="@$user['service_number'] ?? ''" />
 
+                    {{-- Payment channel --}}
+                    <x-form.group.select name="payment_channel" label="Payment Channel" :options="$activeChannels" required
+                        :value="@$user['payment_channel']" />
+
 
                     <hr>
 

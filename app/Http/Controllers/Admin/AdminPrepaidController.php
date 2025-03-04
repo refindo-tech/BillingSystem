@@ -47,6 +47,18 @@ class AdminPrepaidController extends Controller
      */
     public function createUser()
     {
+
+        $activeGateway = Config::get('active_payment_gateway');
+        $channelsConfig = config("payment.{$activeGateway}.channels");
+        $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
+
+        $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+            return [$channel => $channelConfig['name']];
+        })->toArray();
+
+        // dd($activeChannels);
+
         $mode = 'add';
         $prefix = '00000';
         $customers = Customer::all()->mapWithKeys(fn ($customer) => [
@@ -58,11 +70,21 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
         $defaultValidityCycle = ValidityCycle::PROFILE;
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'validityCycles', 'defaultValidityCycle'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'validityCycles', 'defaultValidityCycle', 'activeChannels'));
     }
 
     public function rechargeUser(Customer $user)
     {
+
+        $activeGateway = Config::get('active_payment_gateway');
+        $channelsConfig = config("payment.{$activeGateway}.channels");
+        $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
+
+        $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+            return [$channel => $channelConfig['name']];
+        })->toArray();
+
         $mode = 'add';
         $customers = Customer::all()->mapWithKeys(fn ($customer) => [
             $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
@@ -73,7 +95,7 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultValidityCycle = ValidityCycle::PROFILE;
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle', 'activeChannels'));
     }
 
     public function editUser(UserRecharge $user)
@@ -123,6 +145,10 @@ class AdminPrepaidController extends Controller
         $username = $request->username;
         $password = $request->pppoe_password;
         $server_id = $request->server_id;
+        $payment_channel = $request->payment_channel;
+
+
+        // dd($request->all());
 
         // create transaction
         // $trx = $this->createUserTransaction($customer, $plan);
@@ -134,7 +160,7 @@ class AdminPrepaidController extends Controller
             $router, 
             $plan, 
             RechargeGateway::RECHARGE, 
-            auth()->user()->fullname,
+            $payment_channel,
             $request->service_number, 
             $request->validity_cycle, 
             $request->expired_at, 

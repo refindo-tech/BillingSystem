@@ -68,7 +68,7 @@ public static function rechargeUser(
         );
 
         // Jika transaksi gagal, rollback otomatis akan terjadi
-        if (!static::createUserTransaction($userRecharge)) {
+        if (!static::createUserTransaction($userRecharge, $channel)) {
             throw new \Exception('Failed to create user transaction');
         }
 
@@ -140,7 +140,7 @@ public static function rechargeUser(
     }
 
     //create user transaction
-    public static function createUserTransaction(UserRecharge $userRecharge)
+    public static function createUserTransaction(UserRecharge $userRecharge, $channel = null)
     {
 
         
@@ -180,6 +180,7 @@ public static function rechargeUser(
                 'router_id' => $userRecharge->router_id,
                 'router_name' => $userRecharge->router->name,
                 'price' => $userRecharge->plan->price,
+                'payment_channel' => $channel,
                 'status' => PaymentGatewayStatus::UNPAID,
             ]);
         } else {

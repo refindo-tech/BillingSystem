@@ -61,7 +61,7 @@ class PaymentTripayRepository
     {
        
         $json = [
-            'method'        => 'BRIVA', // Tripay's payment method (e.g., BRIVA, QRIS, etc.)
+            'method'        => $trx['payment_channel'],
             'merchant_ref'  => (string) $trx['id'],
             'amount'        => (int) $trx['price'],
             'customer_name' => $user['fullname'],

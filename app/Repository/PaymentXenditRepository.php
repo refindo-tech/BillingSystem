@@ -56,6 +56,7 @@ class PaymentXenditRepository
             'external_id' => (string) $trx['id'],
             'amount' => $trx['price'],
             'description' => $trx['plan_name'],
+            'channel_code' => $trx['payment_channel'],
             'customer' => [
                 'mobile_number' => $user['phonenumber'],
             ],
