@@ -28,7 +28,15 @@ class CheckExpired extends Command
      */
     public function handle()
     {
-        $services = UserRecharge::whereStatus('on')->whereDate('expired_at', '<', now())->with(['customer', 'router', 'plan'])->get();
+
+        $this->info("Starting the check-expired command...");
+
+
+        // search for expired services
+        $services = UserRecharge::where('expired_at', '<', now())
+            ->where('status', 'on')
+            ->get();
+        $this->info("Found {$services->count()} expired services.");
         foreach ($services as $service) {
             /** @var UserRecharge $service */
             $client = Mikrotik::getClient($service->router->ip_address, $service->router->username, $service->router->password);
@@ -37,22 +45,27 @@ class CheckExpired extends Command
                     //TODO
                 } else {
                     if (! empty($service->plan->pool_expired_id)) {
-                        Mikrotik::setHotspotUserPackage($client, $service->customer->username, 'EXPIRED LNUXBILL '.$service->plan->pool_expired->pool_name);
+                        $this->info("Setting user package to EXPIRED {$service->plan->pool_expired->pool_name}");
+                        Mikrotik::setHotspotUserPackage($client, $service->username, 'EXPIRED '.$service->plan->pool_expired->pool_name);
                     } else {
-                        Mikrotik::removeHotspotUser($client, $service->customer->username);
+                        $this->info("Removing user {$service->username}");
+                        Mikrotik::removeHotspotUser($client, $service->username);
                     }
-                    Mikrotik::removeHotspotActiveUser($client, $service->customer->username);
+                    Mikrotik::removeHotspotActiveUser($client, $service->username);
                 }
             } else {
                 if ($service->plan->is_radius) {
                     //TODO
                 } else {
                     if (! empty($service->plan->pool_expired_id)) {
-                        Mikrotik::setPpoeUserPlan($client, $service->customer->username, 'EXPIRED LNUXBILL '.$service->plan->pool_expired->pool_name);
+                        $this->info("Setting user plan to EXPIRED {$service->plan->pool_expired->pool_name}");
+                        Mikrotik::setPpoeUserPlan($client, $service->username, 'EXPIRED '.$service->plan->pool_expired->pool_name);
                     } else {
-                        Mikrotik::removePpoeUser($client, $service->customer->username);
+                        $this->info("Removing user {$service->username}");
+                        Mikrotik::removePpoeUser($client, $service->username);
                     }
-                    Mikrotik::removePpoeActive($client, $service->customer->username);
+
+                    Mikrotik::removePpoeActive($client, $service->username);
                 }
             }
             $service->status = 'off';
