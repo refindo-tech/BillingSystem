@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('app:check-expired')->hourly();
+        $schedule->command('app:check-awaiting-bill')->dailyAt('03:00');
     }
 
     /**

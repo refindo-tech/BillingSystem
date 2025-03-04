@@ -61,7 +61,7 @@
                     <x-form.group.select name="server_id" label="Server" :options="$serverOptions" required :readonly="true"
                         :value="@$user->server['id'] ?? ''" />
 
-                    <x-form.group.input name="username" label="Username" required :readonly="true"
+                    <x-form.group.input name="username" label="Username" required 
                         :value="@$user['username'] ?? ''" />
                     <x-form.group.input name="pppoe_password" label="Password" required value="1234"
                         :value="@$user['pppoe_password'] ?? '123456'" />
@@ -205,7 +205,7 @@
                 async updateServiceNumber(customerId) {
                     if (!customerId || this.cache.serviceNumbers[customerId]) {
                         $('[name="service_number"]').val(this.cache.serviceNumbers[customerId] || '');
-                        $('[name="username"]').val((this.cache.serviceNumbers[customerId] || '') + '@RLNET.com');
+                        $('[name="username"]').val((this.cache.serviceNumbers[customerId] || '') + '@netplus.id');
                         return;
                     }
 
@@ -214,7 +214,7 @@
                         "serviceNumbers", customerId);
 
                     $('[name="service_number"]').val(data);
-                    $('[name="username"]').val(data + '@RLNET.com');
+                    $('[name="username"]').val(data + '@netplus.id');
                 },
 
                 async updateExpiredAt() {

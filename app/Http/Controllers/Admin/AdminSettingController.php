@@ -44,6 +44,7 @@ class AdminSettingController extends Controller
             'tripay_api_key'      => Config::get('tripay_api_key'),
             'tripay_private_key'  => Config::get('tripay_private_key'),
             'tripay_merchant_code'=> Config::get('tripay_merchant_code'),
+            'tripay_environtment' => Config::get('tripay_environtment'),
             'tripay_channels'     => Config::get('tripay_channels') ? explode(',', Config::get('tripay_channels')) : [],
         ];
         $activeGateway = Config::get('active_payment_gateway');
@@ -72,6 +73,7 @@ class AdminSettingController extends Controller
             'tripay_api_key'      => Config::get('tripay_api_key'),
             'tripay_private_key'  => Config::get('tripay_private_key'),
             'tripay_merchant_code'=> Config::get('tripay_merchant_code'),
+            'tripay_environtment' => Config::get('tripay_environtment'),
             'tripay_channels'     => Config::get('tripay_channels') ? explode(',', Config::get('tripay_channels')) : [],
         ];
 

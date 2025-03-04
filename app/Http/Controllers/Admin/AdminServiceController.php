@@ -113,7 +113,7 @@ class AdminServiceController extends Controller
             Mikrotik::addHotspotPlan($client, $request->name, $request->shared_users, $request->rate);
             if (! empty($request->pool_expired_id)) {
                 $poolExpired = Pool::find($request->pool_expired_id);
-                Mikrotik::setHotspotExpiredPlan($client, 'EXPIRED LNUXBILL '.$poolExpired->pool_name, $poolExpired->pool_name);
+                Mikrotik::setHotspotExpiredPlan($client, 'EXPIRED '.$poolExpired->pool_name, $poolExpired->pool_name);
             }
         }
         Plan::create($request->all());
@@ -171,7 +171,7 @@ class AdminServiceController extends Controller
             Mikrotik::setHotspotPlan($client, $request->name, $request->shared_users, $request->rate);
             if (! empty($request->pool_expired_id)) {
                 $poolExpired = Pool::find($request->pool_expired_id);
-                Mikrotik::setHotspotExpiredPlan($client, 'EXPIRED LNUXBILL '.$poolExpired->pool_name, $poolExpired->pool_name);
+                Mikrotik::setHotspotExpiredPlan($client, 'EXPIRED '.$poolExpired->pool_name, $poolExpired->pool_name);
             }
         }
         $hotspot->update($request->all());
@@ -236,7 +236,7 @@ class AdminServiceController extends Controller
             Mikrotik::addPpoePlan($client, $request->name, $pool->pool_name, $request->rate);
             if (! empty($request->pool_expired_id)) {
                 $poolExpired = Pool::find($request->pool_expired_id);
-                Mikrotik::setPpoePlan($client, 'EXPIRED LNUXBILL '.$poolExpired->pool_name, $poolExpired->pool_name, '512K/512K');
+                Mikrotik::setPpoePlan($client, 'EXPIRED '.$poolExpired->pool_name, $poolExpired->pool_name, '512K/512K');
             }
         }
         Plan::create($request->all());
@@ -278,7 +278,7 @@ class AdminServiceController extends Controller
             Mikrotik::setPpoePlan($client, $request->name, $request->shared_users, $request->rate);
             if (! empty($request->pool_expired_id)) {
                 $poolExpired = Pool::find($request->pool_expired_id);
-                Mikrotik::setPpoePlan($client, 'EXPIRED LNUXBILL '.$poolExpired->pool_name, $poolExpired->pool_name, '512K/512K');
+                Mikrotik::setPpoePlan($client, 'EXPIRED '.$poolExpired->pool_name, $poolExpired->pool_name, '512K/512K');
             }
         }
         $pppoe->update($request->all());

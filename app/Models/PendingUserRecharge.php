@@ -2,37 +2,34 @@
 
 namespace App\Models;
 
-use App\Enum\PlanType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class UserRecharge extends Model
+class PendingUserRecharge extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'user_recharge_id',
         'customer_id',
         'plan_id',
         'router_id',
         'server_id',
         'username',
-        'pppoe_password',
-        'namebp',
-        'recharged_at',
-        'expired_at',
+        'price',
         'status',
-        'method',
-        'type',
-        'service_number',
+        'scheduled_for',
     ];
 
     protected $casts = [
-        'type' => PlanType::class,
-        'recharged_at' => 'datetime',
-        'expired_at' => 'datetime',
+        'scheduled_for' => 'datetime',
     ];
+
+    public function userRecharge(): BelongsTo
+    {
+        return $this->belongsTo(UserRecharge::class);
+    }
 
     public function customer(): BelongsTo
     {
@@ -48,22 +45,4 @@ class UserRecharge extends Model
     {
         return $this->belongsTo(Router::class);
     }
-
-    public function server(): BelongsTo
-    {
-        return $this->belongsTo(Server::class);
-    }
-
-    public function paymentGateway(): HasOne
-    {
-        return $this->hasOne(PaymentGateway::class);
-    }
-
-    public function getIsActiveAttribute(): bool
-    {
-        return $this->status === 'on';
-    }
-
-
-
 }

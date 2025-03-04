@@ -2,6 +2,9 @@
     $unpaid = \App\Models\PaymentGateway::where('username', auth()->user()->username)
         ->whereStatus(\App\Enum\PaymentGatewayStatus::UNPAID)
         ->first();
+    $awaitingBill = \App\Models\PendingUserRecharge::where('customer_id', auth()->user()->id)
+        ->whereStatus(\App\Enum\PendingUserRechargeStatus::WAITING)
+        ->first();
 @endphp
 <x-customer-layout title="Dashboard" active-menu="dashboard" :path="['Dashboard' => '']">
     <div class="app-container container-xxl">
@@ -49,6 +52,10 @@
                                     <td>{{ $bill->created_at }}</td>
                                 </tr>
                                 <tr>
+                                    <td>Status</td>
+                                    <td>{{ $bill->status }}</td>
+                                </tr>
+                                <tr>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>EXPIRES ON</td>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>
                                         {{ $bill->expired_at }}</td>
@@ -58,6 +65,8 @@
                     @endforeach
                 </div>
             </div>
+
+            
             <div class="col-md-6 order-first order-md-last">
                 @if ($unpaid)
                     <div class="card">
@@ -73,6 +82,18 @@
                                 <tr>
                                     <td>Plan Name</td>
                                     <td>{{ $unpaid->plan_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Transaction Type</td>
+                                    <td>
+                                        @if ($unpaid->transaction_type == 'new')
+                                            Paket Baru
+                                        @elseif ($unpaid->transaction_type == 'recharge')
+                                            Perpanjangan Paket
+                                        @else
+                                            {{ $unpaid->transaction_type }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Plan Price</td>
@@ -91,8 +112,41 @@
                                 </tr>
                             </table>
                         </div>
-                @endif
+                @elseif ($awaitingBill)
+                <div class="card">
+                    <div class="card-header bg-danger">
+                        <h5 class="card-title text-white">AWAITING BILL</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-bordered table-striped">
+                            <tr>
+                                <td>Scheduled For</td>
+                                <td>{{ \App\Support\Lang::dateTimeFormat($awaitingBill->scheduled_for) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Plan Name</td>
+                                <td>{{ $awaitingBill->plan->name }}</td>
+                            </tr>
+                            <tr>
+                                <td>Plan Price</td>
+                                <td>{{ \App\Support\Lang::moneyformat($awaitingBill->price) }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+
+                                    <div class="btn-group w-100" role="group" aria-label="Basic example">
+                                        <a href="{{ route('customer:order.cancel-bill', $awaitingBill->id) }}"
+                                            class="btn btn-sm btn-danger">CANCEL</a>
+                                        <a href="{{ route('customer:order.activate-bill', $awaitingBill->id) }}"
+                                            class="btn btn-sm btn-success">PAY NOW</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    @endif
             </div>
+       
         </div>
     </div>
     </div>
