@@ -49,6 +49,10 @@
                                     <td>{{ $bill->created_at }}</td>
                                 </tr>
                                 <tr>
+                                    <td>Status</td>
+                                    <td>{{ $bill->status }}</td>
+                                </tr>
+                                <tr>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>EXPIRES ON</td>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>
                                         {{ $bill->expired_at }}</td>
@@ -73,6 +77,18 @@
                                 <tr>
                                     <td>Plan Name</td>
                                     <td>{{ $unpaid->plan_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Transaction Type</td>
+                                    <td>
+                                        @if ($unpaid->transaction_type == 'new')
+                                            Paket Baru
+                                        @elseif ($unpaid->transaction_type == 'recharge')
+                                            Perpanjangan Paket
+                                        @else
+                                            {{ $unpaid->transaction_type }}
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Plan Price</td>
