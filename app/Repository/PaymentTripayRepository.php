@@ -20,7 +20,7 @@ class PaymentTripayRepository
 
     public function __construct()
     {
-        $this->baseUrl = config('payment.tripay.base_url');
+        $this->baseUrl = config('payment.tripay.sandbox_base_url');
         $this->config = Config::all()->only([
             'tripay_api_key',
             'tripay_private_key',
@@ -52,11 +52,12 @@ class PaymentTripayRepository
     //doc: https://tripay.co.id/developer?tab=transaction-create
     public function createTransaction(PaymentGateway $trx, Customer $user)
     {
+       
         $json = [
-            'method'        => $trx->payment_channel, // Tripay's payment method (e.g., BRIVA, QRIS, etc.)
+            'method'        => 'BRIVA', // Tripay's payment method (e.g., BRIVA, QRIS, etc.)
             'merchant_ref'  => (string) $trx['id'],
             'amount'        => (int) $trx['price'],
-            'customer_name' => $user['name'],
+            'customer_name' => $user['fullname'],
             'customer_email'=> $user['email'] ?? 'no-email@example.com',
             'customer_phone'=> $user['phonenumber'],
             'order_items'   => [
@@ -69,11 +70,14 @@ class PaymentTripayRepository
             ],
             'return_url'    => route('customer:order.check', $trx),
             'expired_time'  => time() + (24 * 60 * 60), // Expire in 24 hours
+            'signature'     => hash_hmac('sha256', $this->config->get('tripay_merchant_code') . $trx['id'] . (int) $trx['price'], $this->config->get('tripay_private_key')),
         ];
 
         $result = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->config->get('tripay_api_key')
         ])->post($this->baseUrl . '/transaction/create', $json)->collect();
+
+        
 
         if (! $result->get('success')) {
             throw new AppException('Failed to create transaction: ' . $result->get('message'));

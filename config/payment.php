@@ -71,8 +71,8 @@ return [
         ],
     ],
     'tripay' => [
-        'base_url' => 'https://tripay.co.id/api/', // Production base URL
-        'sandbox_base_url' => 'https://tripay.co.id/sandbox/api/', // Sandbox base URL
+        'base_url' => 'https://tripay.co.id/api', // Production base URL
+        'sandbox_base_url' => 'https://tripay.co.id/api-sandbox', // Sandbox base URL
         'channels' => [
             [
                 'id' => 'BRIVA',

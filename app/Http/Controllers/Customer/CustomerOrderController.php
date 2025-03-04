@@ -129,6 +129,9 @@ class CustomerOrderController extends Controller
             'status' => PaymentGatewayStatus::CANCELED,
         ]);
 
+        //delete user recharge
+        $order->userRecharge()->delete();
+
         return redirect()->back()->with('success', 'Transaction has been canceled');
     }
 
