@@ -67,6 +67,8 @@ public static function rechargeUser(
             $server_id
         );
 
+        
+
         // Jika transaksi gagal, rollback otomatis akan terjadi
         if (!static::createUserTransaction($userRecharge, $channel)) {
             throw new \Exception('Failed to create user transaction');
@@ -140,11 +142,11 @@ public static function rechargeUser(
     }
 
     //create user transaction
-    public static function createUserTransaction(UserRecharge $userRecharge, $channel = null)
+    public static function createUserTransaction(UserRecharge $userRecharge, $channel)
     {
 
-        
 
+        
         $activeGateway = Config::get('active_payment_gateway');
         if (empty($activeGateway)) {
             $activeGateway = 'tripay';
@@ -159,13 +161,15 @@ public static function rechargeUser(
             return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
         }
 
+        
+
         $order = PaymentGateway::where('user_recharge_id', $userRecharge->id)
             ->where('status', PaymentGatewayStatus::UNPAID)
             ->first();
 
         // Check for existing unpaid transaction
         if ($order && $order->pg_url_payment) {
-            return false;
+            throw new PackageRechargeException('There is an existing unpaid transaction for ' . $userRecharge->customer->fullname);
         }
 
         

@@ -5,69 +5,55 @@ return [
         'base_url' => 'https://api.xendit.co/v2',
         'channels' => [
             [
-                'id' => 'CREDIT_CARD',
-                'name' => 'CREDIT CARD',
-            ],
-            [
-                'id' => 'PERMATA',
+                'id' => 'ID_PERMATA',
                 'name' => 'Permata Bank',
             ],
             [
-                'id' => 'BNI',
+                'id' => 'ID_BNI',
                 'name' => 'BNI',
             ],
             [
-                'id' => 'BRI',
+                'id' => 'ID_BRI',
                 'name' => 'BRI',
             ],
             [
-                'id' => 'MANDIRI',
+                'id' => 'ID_MANDIRI',
                 'name' => 'Mandiri',
             ],
             [
-                'id' => 'BCA',
+                'id' => 'ID_BCA',
                 'name' => 'BCA',
             ],
             [
-                'id' => 'BSI',
+                'id' => 'ID_BTN',
+                'name' => 'BTN',
+            ],
+            [
+                'id' => 'ID_BSI',
                 'name' => 'BSI',
             ],
             [
-                'id' => 'DD_BRI',
-                'name' => 'Direct Debit BRI',
-            ],
-            [
-                'id' => 'DD_BCA_KLIKPAY',
-                'name' => 'Direct Debit BCA KLIKPAY',
-            ],
-            [
-                'id' => 'ALFAMART',
-                'name' => 'Alfamart ',
-            ],
-            [
-                'id' => 'INDOMARET',
-                'name' => 'Indomaret ',
-            ],
-            [
-                'id' => 'OVO',
+                'id' => 'ID_OVO',
                 'name' => 'OVO',
             ],
             [
-                'id' => 'DANA',
+                'id' => 'ID_GOPAY',
+                'name' => 'GOPAY',
+            ],
+            
+            [
+                'id' => 'ID_DANA',
                 'name' => 'DANA',
             ],
             [
-                'id' => 'LINKAJA',
+                'id' => 'ID_LINKAJA',
                 'name' => 'LinkAja',
             ],
             [
-                'id' => 'SHOPEEPAY',
+                'id' => 'ID_SHOPEEPAY',
                 'name' => 'ShopeePay ',
             ],
-            [
-                'id' => 'QRIS',
-                'name' => 'QRIS',
-            ],
+        
         ],
     ],
     'tripay' => [
