@@ -100,7 +100,7 @@ class PaymentXenditRepository
 
         if (in_array($result['status'], ['PAID', 'SETTLED']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
-                Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel']);
+                Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel'], $trx->transaction_type);
             } catch (Exception $e) {
                 throw new AppException('Failed to activate your package, please try again');
             }

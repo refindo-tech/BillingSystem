@@ -14,6 +14,7 @@ use App\Models\Plan;
 use App\Models\Router;
 use App\Models\Transaction;
 use App\Models\UserRecharge;
+use App\Models\PendingUserRecharge;
 
 use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
@@ -189,6 +190,7 @@ public static function rechargeUser(
                 'price' => $userRecharge->plan->price,
                 'payment_channel' => $channel,
                 'status' => PaymentGatewayStatus::UNPAID,
+                'transaction_type' => 'new',
             ]);
         } else {
             $order->update([
@@ -227,11 +229,17 @@ public static function rechargeUser(
     }
 
     //Creat invoice
-    public static function activatePackage(UserRecharge $userRecharge, $rechargeGateway, $channel)
+    public static function activatePackage(UserRecharge $userRecharge, $rechargeGateway, $channel, $trasaction_type)
     {
         static::createMikrotikAccount($userRecharge);
+        //if transaction type is recharge, update the expiration date
+        $expiredAt = ($trasaction_type == 'recharge')
+            ? static::calculateExpiration($userRecharge->plan, $userRecharge->validity_cycle, $userRecharge)
+            : $userRecharge->expired_at;
+
         $userRecharge->update([
             'status' => 'on',
+            'expired_at' => $expiredAt,
         ]);
 
         Transaction::create([
@@ -269,12 +277,17 @@ public static function rechargeUser(
      */
     private static function calculateExpiration(Plan $plan, $validityCycle, $userRecharge)
     {
-        return match ($plan->validity_unit) {
-            ValidityUnit::MONTHS => now()->addMonths($plan->validity),
-            ValidityUnit::DAYS => now()->addDays($plan->validity),
-            ValidityUnit::HRS => now()->addHours($plan->validity),
-            ValidityUnit::MINS => now()->addMinutes($plan->validity),
+        $expiredAt = $userRecharge->expired_at;
+
+        return match ($validityCycle) {
+            ValidityCycle::FIXED, ValidityCycle::MONTHLY => date('Y-m-d H:i:s', strtotime($expiredAt. ' + 1 month')),
+            default => match ($plan->validity_unit) {
+            ValidityUnit::MONTHS => $expiredAt->addMonths($plan->validity),
+            ValidityUnit::DAYS => $expiredAt->addDays($plan->validity),
+            ValidityUnit::HRS => $expiredAt->addHours($plan->validity),
+            ValidityUnit::MINS => $expiredAt->addMinutes($plan->validity),
             default => throw new PackageRechargeException('Invalid validity unit')
+            }
         };
     }
     
@@ -284,7 +297,7 @@ public static function rechargeUser(
     private static function extendExpiration(UserRecharge $userRecharge, Plan $plan, $validityCycle)
     {
         return match ($validityCycle) {
-            ValidityCycle::FIXED, ValidityCycle::MONTHLY => $userRecharge->expired_at->addMonth(),
+            ValidityCycle::FIXED, ValidityCycle::MONTHLY => date('Y-m-d H:i:s', strtotime($userRecharge->expired_at. ' + 1 month')),
             default => static::calculateExpiration($plan, $validityCycle, $userRecharge),
         };
     }
@@ -311,6 +324,75 @@ public static function rechargeUser(
                 Mikrotik::addPpoeUser($client, $plan, $customer, $username, $pppoePassword);
             }
         }
+
+
+        $price = ($plan->id == $userRecharge->plan_id)
+            ? $plan->price
+            : static::calculatePrice($userRecharge->recharged_at, $userRecharge->expired_at, $userRecharge->plan->price, $plan->price);
+
+        //Pending user recharge
+        // PendingUserRecharge::create([
+        //     'user_recharge_id' => $userRecharge->id,
+        //     'customer_id' => $customer->id,
+        //     'plan_id' => $plan->id,
+        //     'router_id' => $mikrotik->id,
+        //     'server_id' => $userRecharge->server_id,
+        //     'username' => $username,
+        //     'price' => $price,
+        //     'status' => 'pending',
+        //     'scheduled_for' => now(),
+        // ]);
+
+        //check if there is a pending transaction
+        $pendingPayment = PaymentGateway::where('user_recharge_id', $userRecharge->id)->where('status', PaymentGatewayStatus::UNPAID)->first();
+
+        if ($pendingPayment) {
+            throw new PackageRechargeException('There is an existing unpaid transaction for ' . $userRecharge->customer->fullname);
+        }
+
+        //check if there is a pending transaction
+        $pending = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)->where('status', 'waiting')->first();
+        $scheduledFor = $userRecharge->expired_at->subDays(5);
+        if ($pending) {
+            $pending->update([
+                'customer_id' => $customer->id,
+                'plan_id' => $plan->id,
+                'router_id' => $mikrotik->id,
+                'server_id' => $userRecharge->server_id,
+                'username' => $username,
+                'price' => $price,
+                'status' => 'waiting',
+                'scheduled_for' => $scheduledFor,
+            ]);
+        } else {
+            PendingUserRecharge::create([
+                'user_recharge_id' => $userRecharge->id,
+                'customer_id' => $customer->id,
+                'plan_id' => $plan->id,
+                'router_id' => $mikrotik->id,
+                'server_id' => $userRecharge->server_id,
+                'username' => $username,
+                'price' => $price,
+                'status' => 'waiting',
+                'scheduled_for' => $scheduledFor,
+            ]);
+        }
+    }
+
+    public static function calculatePrice($startDateTime, $endDateTime, $oldPlanPrice, $newPlanPrice)
+    {
+        $start = strtotime($startDateTime);
+        $end = strtotime($endDateTime);
+        $today = time();
+        $totalDays = 30;
+        $usedDays = ($today - $start) / (60 * 60 * 24);
+        $remainingDays = ($end - $today) / (60 * 60 * 24);
+
+        $oldPlanPricePerDay = $oldPlanPrice / $totalDays;
+        $newPlanPricePerDay = $newPlanPrice / $totalDays;
+        $totalPrice = ($oldPlanPricePerDay * $usedDays) + ($newPlanPricePerDay * $remainingDays);
+        return round($totalPrice / 500) * 500;
+        
     }
 
     public static function _raid($l)

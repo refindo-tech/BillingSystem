@@ -29,6 +29,7 @@ class PaymentGateway extends Model
         'expired_date',
         'paid_date',
         'status',
+        'transaction_type',
     ];
 
     protected $casts = [

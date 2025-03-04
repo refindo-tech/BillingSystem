@@ -185,7 +185,11 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
         $newPlan = Plan::findOrFail($request->new_plan_id);
+        $username = $request->username;
+        $password = $request->pppoe_password;
 
+        Package::changeTo($customer, $newPlan, $user, $username, $password);
+        
         $user->plan_id = $newPlan->id;
         $user->expired_at = match ($request->upgrade_type) {
             UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
@@ -193,11 +197,6 @@ class AdminPrepaidController extends Controller
             default => $user->expired_at,
         };
         $user->save();
-
-        $username = $request->username;
-        $password = $request->pppoe_password;
-
-        Package::changeTo($customer, $newPlan, $user, $username, $password);
         Log::put('Update account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
