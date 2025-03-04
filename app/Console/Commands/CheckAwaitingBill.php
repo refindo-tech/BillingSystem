@@ -8,7 +8,6 @@ use App\Models\UserRecharge;
 use App\Models\PendingUserRecharge;
 use App\Models\PaymentGateway;
 use App\Support\Mikrotik;
-
 use App\Support\Package;
 use App\Support\Facades\Config;
 use Illuminate\Console\Command;
@@ -34,65 +33,95 @@ class CheckAwaitingBill extends Command
      */
     public function handle()
     {
-
         $this->info("Starting the check-awaiting-bill command...");
 
-
-        // search for expired services
-        $awaitingBills = PendingUserRecharge::where('status', 'waiting')->whereDate('scheduled_for', '<=', now())->get();
-
-        $this->info("Found {$awaitingBills->count()} awaiting bills.");
-        foreach ($awaitingBills as $awaitingBill) {
-            $this->info("Processing awaiting bill for {$awaitingBill->username}...");
-
-            // check if the user has a payment gateway
-            $paymentGateway = PaymentGateway::where('user_recharge_id', $awaitingBill->user_recharge_id)->where('status', PaymentGatewayStatus::UNPAID)->first();
-            if ($paymentGateway) {
-                //skip if there's already a payment gateway
-                $this->info("Payment gateway found for {$awaitingBill->username}. Skipping...");
+        // Get user recharges that are about to expire in the next 7 days
+        $userRecharges = UserRecharge::where('status', 'on')
+            ->whereDate('expired_at', '<=', now()->addDays(7))
+            ->get();
+        
+        foreach ($userRecharges as $userRecharge) {
+            $this->info("Checking user: {$userRecharge->customer->username}...");
+            
+            // Check if there is a pending user recharge
+            $awaitingBill = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)
+                ->where('status', 'waiting')
+                ->first();
+            
+            if ($awaitingBill) {
+                $this->info("Pending user recharge found for {$userRecharge->customer->username}. Processing...");
+                $this->processPayment($awaitingBill);
             } else {
-                //create user transaction
-                $this->info("Payment gateway not found for {$awaitingBill->username}. Creating a new payment gateway...");
-                $activeGateway = Config::get('active_payment_gateway');
-                if (empty($activeGateway)) {
-                    $activeGateway = 'tripay';
-                }
-
-                $customer = $awaitingBill->userRecharge->customer;
-                $payment_channel = $awaitingBill->userRecharge->method;
-                $payment_channel = explode(' - ', $payment_channel)[1];
+                $this->info("No pending user recharge found for {$userRecharge->customer->username}. Creating new payment gateway...");
+                
+                $activeGateway = Config::get('active_payment_gateway', 'tripay');
+                $payment_channel = explode(' - ', $userRecharge->method)[1] ?? 'default';
+                
                 $paymentGateway = PaymentGateway::create([
-                    'username' => $customer->username,
-                    'user_recharge_id' => $awaitingBill->user_recharge_id,
+                    'username' => $userRecharge->customer->username,
+                    'user_recharge_id' => $userRecharge->id,
                     'gateway' => $activeGateway,
-                    'plan_id' => $awaitingBill->plan_id,
-                    'plan_name' => $awaitingBill->plan->name,
-                    'router_id' => $awaitingBill->router_id,
-                    'router_name' => $awaitingBill->router->name,
-                    'price' => $awaitingBill->price,
+                    'plan_id' => $userRecharge->plan_id,
+                    'plan_name' => $userRecharge->plan->name,
+                    'router_id' => $userRecharge->router_id,
+                    'router_name' => $userRecharge->router->name,
+                    'price' => $userRecharge->plan->price,
                     'status' => PaymentGatewayStatus::UNPAID,
                     'payment_channel' => $payment_channel,
                     'transaction_type' => 'recharge',
                 ]);
-
-                $this->info("Payment gateway created for {$awaitingBill->username}.");
-                $this->info("Processing transaction for {$awaitingBill->username}...");
-
-                // Process transaction based on active gateway
-                if ($activeGateway === 'xendit') {
-                    $this->info("Processing transaction for {$awaitingBill->username} using Xendit...");
-                    $xendit = new \App\Repository\PaymentXenditRepository();
-                    $xendit->createTransaction($paymentGateway, $customer);
-                } elseif ($activeGateway === 'tripay') {
-                    $this->info("Processing transaction for {$awaitingBill->username} using TriPay...");
-                    $tripay = new \App\Repository\PaymentTriPayRepository();
-                    $tripay->createTransaction($paymentGateway, $customer);
-                } else {
-                    $this->error("Invalid payment gateway configuration for {$awaitingBill->username}.");
-                }
-
+                
+                $this->info("Payment gateway created for {$userRecharge->customer->username}.");
+                $this->processTransaction($paymentGateway, $userRecharge->customer, $activeGateway);
             }
         }
+    }
 
+    private function processPayment(PendingUserRecharge $awaitingBill)
+    {
+        $paymentGateway = PaymentGateway::where('user_recharge_id', $awaitingBill->user_recharge_id)
+            ->where('status', PaymentGatewayStatus::UNPAID)
+            ->first();
+
+        if ($paymentGateway) {
+            $this->info("Payment gateway already exists for {$awaitingBill->username}. Skipping...");
+        } else {
+            $this->info("Creating a new payment gateway for {$awaitingBill->username}...");
+            
+            $activeGateway = Config::get('active_payment_gateway', 'tripay');
+            $payment_channel = explode(' - ', $awaitingBill->userRecharge->method)[1] ?? 'default';
+            
+            $paymentGateway = PaymentGateway::create([
+                'username' => $awaitingBill->userRecharge->customer->username,
+                'user_recharge_id' => $awaitingBill->user_recharge_id,
+                'gateway' => $activeGateway,
+                'plan_id' => $awaitingBill->plan_id,
+                'plan_name' => $awaitingBill->plan->name,
+                'router_id' => $awaitingBill->router_id,
+                'router_name' => $awaitingBill->router->name,
+                'price' => $awaitingBill->price,
+                'status' => PaymentGatewayStatus::UNPAID,
+                'payment_channel' => $payment_channel,
+                'transaction_type' => 'recharge',
+            ]);
+            
+            $this->info("Payment gateway created for {$awaitingBill->username}.");
+            $this->processTransaction($paymentGateway, $awaitingBill->userRecharge->customer, $activeGateway);
+        }
+    }
+
+    private function processTransaction(PaymentGateway $paymentGateway, $customer, $activeGateway)
+    {
+        $this->info("Processing transaction for {$customer->username} using {$activeGateway}...");
+
+        if ($activeGateway === 'xendit') {
+            $xendit = new \App\Repository\PaymentXenditRepository();
+            $xendit->createTransaction($paymentGateway, $customer);
+        } elseif ($activeGateway === 'tripay') {
+            $tripay = new \App\Repository\PaymentTriPayRepository();
+            $tripay->createTransaction($paymentGateway, $customer);
+        } else {
+            $this->error("Invalid payment gateway configuration for {$customer->username}.");
+        }
     }
 }

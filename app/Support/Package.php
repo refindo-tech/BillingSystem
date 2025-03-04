@@ -352,7 +352,7 @@ public static function rechargeUser(
 
         //check if there is a pending transaction
         $pending = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)->where('status', 'waiting')->first();
-        $scheduledFor = $userRecharge->expired_at->subDays(5);
+        $scheduledFor = $userRecharge->expired_at->subDays(7);
         if ($pending) {
             $pending->update([
                 'customer_id' => $customer->id,
