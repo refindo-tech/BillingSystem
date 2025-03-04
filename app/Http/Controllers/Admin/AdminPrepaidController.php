@@ -16,7 +16,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidUserUpdateRequest;
 use App\Http\Requests\Admin\Prepaid\PrepaidVoucherRequest;
+use App\Jobs\SendWhatsAppMessageJob;
+use App\Jobs\SendWhatsAppScheduledMessageJob;
 use App\Models\Customer;
+use App\Models\KeyWhatsapp;
 use App\Models\Plan;
 use App\Models\Router;
 use App\Models\Transaction;
@@ -24,6 +27,8 @@ use App\Models\UserRecharge;
 use App\Models\Voucher;
 use App\Models\Server;
 use App\Models\PaymentGateway;
+use App\Models\WhatsappMessage;
+use App\Models\WhatsAppTemplate;
 use App\Support\Facades\Config;
 use App\Support\Facades\Log;
 use App\Support\Facades\Xendit;
@@ -31,6 +36,7 @@ use App\Support\Facades\Tripay;
 use App\Support\Lang;
 use App\Support\Mikrotik;
 use App\Support\Package;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -49,10 +55,10 @@ class AdminPrepaidController extends Controller
     {
         $mode = 'add';
         $prefix = '00000';
-        $customers = Customer::all()->mapWithKeys(fn ($customer) => [
+        $customers = Customer::all()->mapWithKeys(fn($customer) => [
 
             $customer->id => (strlen($prefix) > strlen($customer->id) ? substr($prefix, 0, strlen($prefix) - strlen($customer->id)) : '') . $customer->id . ' - ' . $customer->fullname . ' - ' . $customer->email,
-            
+
         ]);
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
@@ -64,8 +70,8 @@ class AdminPrepaidController extends Controller
     public function rechargeUser(Customer $user)
     {
         $mode = 'add';
-        $customers = Customer::all()->mapWithKeys(fn ($customer) => [
-            $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
+        $customers = Customer::all()->mapWithKeys(fn($customer) => [
+            $customer->id => $customer->username . ' - ' . $customer->fullname . ' - ' . $customer->email,
         ]);
         $user['customer_id'] = $user->id;
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
@@ -81,30 +87,37 @@ class AdminPrepaidController extends Controller
         $mode = 'edit';
         $customer = Customer::findOrFail($user->customer_id);
         $customers = [
-            $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
+            $customer->id => $customer->username . ' - ' . $customer->fullname . ' - ' . $customer->email,
         ];
 
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
         $planOptions = Plan::where('type', $user->plan->type)
             ->where('router_id', $user->router_id)
             ->get()
-            ->mapWithKeys(fn ($plan) => [
-                $plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price),
+            ->mapWithKeys(fn($plan) => [
+                $plan->id => $plan->name . ' - ' . Lang::moneyFormat($plan->price),
             ]);
 
-        $routerOptions = Router::all()->mapWithKeys(fn ($router) => [
-            $router->id => $router->name.' - '.$router->ip_address,
+        $routerOptions = Router::all()->mapWithKeys(fn($router) => [
+            $router->id => $router->name . ' - ' . $router->ip_address,
         ]);
 
-        $serverOptions = Server::where('router_id', $user->router_id)->get()->mapWithKeys(fn ($server) => [
+        $serverOptions = Server::where('router_id', $user->router_id)->get()->mapWithKeys(fn($server) => [
             $server->id => $server->name,
         ]);
 
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
-        $upgradeTypes = array_map(fn ($value) => $value . ' - ' . UpgradeType::from($value)->description(), array_column(UpgradeType::cases(), 'value', 'value'));
+        $upgradeTypes = array_map(fn($value) => $value . ' - ' . UpgradeType::from($value)->description(), array_column(UpgradeType::cases(), 'value', 'value'));
 
         return view('admin.prepaid.user.form-update', compact(
-            'mode', 'customers', 'planTypes', 'planOptions', 'routerOptions', 'serverOptions', 'validityCycles', 'upgradeTypes'
+            'mode',
+            'customers',
+            'planTypes',
+            'planOptions',
+            'routerOptions',
+            'serverOptions',
+            'validityCycles',
+            'upgradeTypes'
         ))->with([
             'defaultPlanType' => $user->plan->type,
             'defaultRouterId' => $user->plan->router_id,
@@ -117,25 +130,115 @@ class AdminPrepaidController extends Controller
 
     public function storeUser(PrepaidUserRequest $request)
     {
-        $customer = Customer::findOrFail($request->customer_id);
-        $router = Router::findOrFail($request->router_id);
-        $plan = Plan::findOrFail($request->plan_id);
-        $username = $request->username;
-        $password = $request->pppoe_password;
-        $server_id = $request->server_id;
-
-        // create transaction
-        // $trx = $this->createUserTransaction($customer, $plan);
-
         // dd($request->all());
-        Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
-        $invoice = Transaction::where('username', $customer->username)
-            ->latest('id')->first();
+        try {
+            $customer = Customer::findOrFail($request->customer_id);
+            $router = Router::findOrFail($request->router_id);
+            $plan = Plan::findOrFail($request->plan_id);
+            $username = $request->username;
+            $password = $request->pppoe_password;
+            $server_id = $request->server_id;
 
-        Log::put('Recharge account '.$customer->username, auth()->user());
+            // Recharge user
+            Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
 
-        return redirect()->route('admin:prepaid.invoice.show', $invoice);
+            // Ambil invoice terakhir berdasarkan username pelanggan
+            $invoice = Transaction::where('username', $customer->username)
+                ->latest('id')->first();
+
+            // Generate pesan WhatsApp
+            $message = $this->generateRechargeMessage($customer, $plan, $request);
+            $messageSchedule = $this->generateBillingMessage($customer, $plan, $request);
+            $expiredAt = $request->expired_at;
+
+            dd($message, $messageSchedule, $expiredAt);
+
+            // Kirim pesan WhatsApp jika nomor HP tersedia
+            if (!empty($customer->phonenumber) && $message) {
+                $tokenDevice = KeyWhatsapp::first()->key_device;
+                SendWhatsAppMessageJob::dispatch($customer->phonenumber, $message, $tokenDevice);
+                
+                // Simpan log pesan ke database
+                WhatsappMessage::create([
+                    'phone'   => $customer->phonenumber,
+                    'message' => $message,
+                    'date'    => now(),
+                    'status'  => 'sent',
+                ]);
+
+                SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+                WhatsappMessage::create([
+                    'phone'   => $customer->phonenumber,
+                    'message' => $messageSchedule,
+                    'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
+                    'status'  => 'scheduled',
+                ]);
+            }
+
+            Log::put('Recharge account ' . $customer->username, ['admin' => auth()->user()]);
+
+            return redirect()->route('admin:prepaid.invoice.show', $invoice);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
+
+    private function generateRechargeMessage(Customer $customer, Plan $plan, $request)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Registrasi' atau 'Isi Ulang'
+        $template = WhatsAppTemplate::where('type', 'layanan_baru')->first();
+
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOLAYANAN#'     => $request->service_number, // Format nomor layanan
+            '#NAMAPELANGGAN#' => $customer->fullname,
+            '#ALAMATPASANG#'  => $customer->address,
+            '#PROFILE#'       => $plan->name,
+            '#HARGA#'         => number_format($plan->price, 0, ',', '.'),
+            '#JENISTAGIHAN#'  => $request->validity_cycle,
+            '#TGLAKTIF#'      => date('d-m-Y', strtotime($request->active_at)),
+            '#TGLISOLIR#'     => date('d-m-Y', strtotime($request->expired_at)),
+            '#PHONE#'         => $customer->phonenumber,
+            '#URL#'           => route('customer:dashboard'), // Contoh link ke profil pelanggan
+        ];
+
+        // Mengganti placeholder dengan nilai dari pelanggan
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+    private function generateBillingMessage(Customer $customer, Plan $plan, $request)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Penagihan'
+        $template = WhatsAppTemplate::where('type', 'Penagihan')->first();
+        $transaction = Transaction::where('username', $customer->username)->latest('id')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOLAYANAN#'       => $request->service_number,
+            '#NAMAPELANGGAN#'   => $customer->fullname,
+            '#ALAMATPASANG#'    => $customer->address,
+            '#INVOICE#'         => $transaction->invoice,
+            '#PERIODE#'         => $request->periode,
+            '#SUBTOTAL#'        => number_format($transaction->price, 0, ',', '.'),
+            '#DISKON#'          => number_format($request->diskon, 0, ',', '.'),
+            '#KODEUNIK#'        => $request->kode_unik,
+            '#PPN#'             => number_format($request->ppn, 0, ',', '.'),
+            '#ADM#'             => number_format($request->adm, 0, ',', '.'),
+            '#TOTAL#'           => number_format($transaction->price, 0, ',', '.'),
+            '#JATUHTEMPO#'      => $request->expired_at,
+            '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
+            '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
+        ];
+
+        // Mengganti placeholder dengan nilai dari pelanggan
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+
+
 
     public function createUserTransaction(Customer $customer, Plan $plan)
     {
@@ -155,7 +258,7 @@ class AdminPrepaidController extends Controller
         $order = PaymentGateway::where('username', $customer->username)
             ->where('status', PaymentGatewayStatus::UNPAID)
             ->first();
-        
+
         // Check for existing unpaid transaction
         if ($order && $order->pg_url_payment) {
             return false;
@@ -210,7 +313,7 @@ class AdminPrepaidController extends Controller
         $password = $request->pppoe_password;
 
         Package::changeTo($customer, $newPlan, $user, $username, $password);
-        Log::put('Update account '.$customer->username, auth()->user());
+        Log::put('Update account ' . $customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
     }
@@ -231,7 +334,7 @@ class AdminPrepaidController extends Controller
             }
         }
         $user->delete();
-        Log::put('Delete account '.$user->username, auth()->user());
+        Log::put('Delete account ' . $user->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.deleted'));
     }
@@ -270,48 +373,48 @@ class AdminPrepaidController extends Controller
     }
 
     public function storeVoucher(PrepaidVoucherRequest $request)
-{
-    if (!empty($request->prefix)) {
-        Config::set('voucher_prefix', $request->prefix);
-    }
-    Config::set('voucher_format', $request->format);
+    {
+        if (!empty($request->prefix)) {
+            Config::set('voucher_prefix', $request->prefix);
+        }
+        Config::set('voucher_format', $request->format);
 
-    for ($i = 0; $i < $request->count; $i++) {
-        $code = strtoupper(substr(md5(time() . rand(10000, 99999)), 0, $request->length));
-        $voucherFormat = VoucherFormat::from($request->format);
+        for ($i = 0; $i < $request->count; $i++) {
+            $code = strtoupper(substr(md5(time() . rand(10000, 99999)), 0, $request->length));
+            $voucherFormat = VoucherFormat::from($request->format);
 
-        if ($voucherFormat == VoucherFormat::lowercase) {
-            $code = strtolower($code);
-        } elseif ($voucherFormat == VoucherFormat::RaNdoM) {
-            $code = Lang::randomUpLowCase($code);
+            if ($voucherFormat == VoucherFormat::lowercase) {
+                $code = strtolower($code);
+            } elseif ($voucherFormat == VoucherFormat::RaNdoM) {
+                $code = Lang::randomUpLowCase($code);
+            }
+
+            // Map 'plan_type' to 'type'
+            $data = $request->except('plan_type');
+            $data['type'] = $request->plan_type;
+            $data['code'] = $request->prefix . $code;
+
+            Voucher::create($data);
         }
 
-        // Map 'plan_type' to 'type'
-        $data = $request->except('plan_type'); 
-        $data['type'] = $request->plan_type; 
-        $data['code'] = $request->prefix . $code;
+        Log::put($request->count . ' vouchers created', auth()->user());
 
-        Voucher::create($data);
+        return redirect()->route('admin:prepaid.voucher.index')->with('success', __('success.created'));
     }
-
-    Log::put($request->count . ' vouchers created', auth()->user());
-
-    return redirect()->route('admin:prepaid.voucher.index')->with('success', __('success.created'));
-}
 
 
     public function destroyVoucher(Voucher $voucher)
     {
         $voucher->delete();
-        Log::put('Delete Voucher '.$voucher->code, auth()->user());
+        Log::put('Delete Voucher ' . $voucher->code, auth()->user());
 
         return redirect()->route('admin:prepaid.voucher.index')->with('success', __('success.deleted'));
     }
 
     public function refillAccount()
     {
-        $customers = Customer::all()->mapWithKeys(fn ($customer) => [
-            $customer->id => $customer->username.' - '.$customer->fullname.' - '.$customer->email,
+        $customers = Customer::all()->mapWithKeys(fn($customer) => [
+            $customer->id => $customer->username . ' - ' . $customer->fullname . ' - ' . $customer->email,
         ]);
 
         return view('admin.prepaid.refill-account', compact('customers'));
@@ -337,14 +440,14 @@ class AdminPrepaidController extends Controller
         $invoice = Transaction::where('username', $customer->username)
             ->latest('id')->first();
 
-        Log::put('Refill Account '.$customer->username, auth()->user());
+        Log::put('Refill Account ' . $customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.invoice.show', $invoice);
     }
 
     public function serviceNumber(Request $request)
     {
-        
+
         if ($request->has('customer_id')) {
             $prefix = '00000';
             $serviceNumber = date('y');
@@ -357,9 +460,8 @@ class AdminPrepaidController extends Controller
         } else {
             $serviceNumber = '';
         }
-        
-        return response()->json($serviceNumber);
 
+        return response()->json($serviceNumber);
     }
 
     public function expiredAt(Request $request)
@@ -371,15 +473,14 @@ class AdminPrepaidController extends Controller
             if ($validityCycle == ValidityCycle::PROFILE) {
                 $plan = Plan::findOrFail($request->plan_id);
                 $expiredAt = match ($plan->validity_unit) {
-                    ValidityUnit::DAYS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' days')),
-                    ValidityUnit::MONTHS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' months')),
-                    ValidityUnit::HRS => date('T-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' hours')),
-                    ValidityUnit::MINS => date('Y-m-d H:i:s', strtotime($activeAt . ' +'.$plan->validity.' minutes')),
+                    ValidityUnit::DAYS => date('Y-m-d H:i:s', strtotime($activeAt . ' +' . $plan->validity . ' days')),
+                    ValidityUnit::MONTHS => date('Y-m-d H:i:s', strtotime($activeAt . ' +' . $plan->validity . ' months')),
+                    ValidityUnit::HRS => date('T-m-d H:i:s', strtotime($activeAt . ' +' . $plan->validity . ' hours')),
+                    ValidityUnit::MINS => date('Y-m-d H:i:s', strtotime($activeAt . ' +' . $plan->validity . ' minutes')),
                 };
             } elseif ($validityCycle == ValidityCycle::MONTHLY) {
                 $expiredAt = date('Y-m-d H:i:s', strtotime($activeAt . ' +1 month'));
                 $expiredAt = date('Y-m-04 H:i:s', strtotime($expiredAt));
-
             } elseif ($validityCycle == ValidityCycle::FIXED) {
                 $expiredAt = date('Y-m-d H:i:s', strtotime($activeAt . ' +1 month'));
             }
@@ -398,7 +499,7 @@ class AdminPrepaidController extends Controller
 
             if ($request->upgrade_type == UpgradeType::RECHARGE->value) {
                 //pluck the id and name of the user's current plan
-                $plans = collect([$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+                $plans = collect([$plan->id => $plan->name . ' - ' . Lang::moneyFormat($plan->price)]);
                 return response()->json($plans);
             }
 
@@ -414,7 +515,7 @@ class AdminPrepaidController extends Controller
             });
 
             //pluck the id and name
-            $plans = $plans->mapWithKeys(fn ($plan) => [$plan->id => $plan->name.' - '.Lang::moneyFormat($plan->price)]);
+            $plans = $plans->mapWithKeys(fn($plan) => [$plan->id => $plan->name . ' - ' . Lang::moneyFormat($plan->price)]);
 
             return response()->json($plans);
         }
@@ -436,7 +537,5 @@ class AdminPrepaidController extends Controller
         $totalPrice = ($oldPlanPricePerDay * $usedDays) + ($newPlanPricePerDay * $remainingDays);
         //round to the nearest 500, ex: 932468.4606060 -> 932500
         return round($totalPrice / 500) * 500;
-        
     }
-
 }

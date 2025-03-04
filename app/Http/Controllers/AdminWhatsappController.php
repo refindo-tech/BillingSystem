@@ -48,12 +48,15 @@ class AdminWhatsappController extends Controller
         $templateInvoice = WhatsAppTemplate::where('type', 'invoice')->first();
         $templateIsolir = WhatsAppTemplate::where('type', 'isolir')->first();
         $templatePenagihan = WhatsAppTemplate::where('type', 'penagihan')->first();
+        $templateNewTiket = WhatsAppTemplate::where('type', 'opentiket')->first();
+        $templateClosedTiket = WhatsAppTemplate::where('type', 'closedtiket')->first();
 
-        return view('admin.setting.whatsapp.template', compact('templateLayananBaru', 'templateInvoice', 'templateIsolir', 'templatePenagihan'));
+        return view('admin.setting.whatsapp.template', compact('templateLayananBaru', 'templateInvoice', 'templateIsolir', 'templatePenagihan', 'templateNewTiket', 'templateClosedTiket'));
     }
 
     public function storeTemplate(Request $request)
     {
+        // dd($request->all());
         $request->validate([
             'pesan_notifikasi' => 'required|string',
         ]);
@@ -413,6 +416,7 @@ class AdminWhatsappController extends Controller
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
 
+    // ini harusnya udah pindah di prepaid cuman disini dulu
     public function sendNewServiceNotification(Request $request)
     {
         try {
@@ -481,7 +485,7 @@ class AdminWhatsappController extends Controller
 
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
-
+    // invoie belum gatau sistem paymentnya
     public function sendInvoiceNotification(Request $request)
     {
         try {
