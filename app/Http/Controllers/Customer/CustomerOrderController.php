@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Customer;
 
 use App\DataTables\OrderHistoryDataTable;
 use App\Enum\PaymentGatewayStatus;
+use App\Enum\PendingUserRechargeStatus;
 use App\Exceptions\AppException;
 use App\Http\Controllers\Controller;
 use App\Models\PaymentGateway;
+use App\Models\PendingUserRecharge;
 use App\Models\Plan;
 use App\Models\Router;
 use App\Support\Facades\Config;
@@ -96,6 +98,49 @@ class CustomerOrderController extends Controller
         }
 
         return view('customer.order.detail', compact('order'));
+    }
+
+    public function activateBill(PendingUserRecharge $bill)
+    {
+        $activeGateway = Config::get('active_payment_gateway', 'tripay');
+        $payment_channel = explode(' - ', $bill->userRecharge->method)[1] ?? 'default';
+
+        $order = PaymentGateway::create
+        ([
+            'username' => $bill->customer->username,
+            'user_recharge_id' => $bill->userRecharge->id,
+            'gateway' => $activeGateway,
+            'plan_id' => $bill->plan_id,
+            'plan_name' => $bill->plan->name,
+            'router_id' => $bill->router_id,
+            'router_name' => $bill->router->name,
+            'price' => $bill->price,
+            'status' => PaymentGatewayStatus::UNPAID,
+            'payment_channel' => $payment_channel,
+            'transaction_type' => 'recharge',
+        ]);
+
+        //process transaction
+        if ($activeGateway === 'xendit') {
+            Xendit::createTransaction($order, $bill->customer);
+        } elseif ($activeGateway === 'tripay') {
+            Tripay::createTransaction($order, $bill->customer);
+        } else {
+            throw new AppException('Invalid payment gateway.');
+        }
+
+        $bill->update(['status' => PendingUserRechargeStatus::CONFIRMED]);
+
+        return view('customer.order.detail', compact('order'));
+    }
+
+    public function cancelBill(PendingUserRecharge $bill)
+    {
+
+        $bill->update(['status' => PendingUserRechargeStatus::CANCELED]);
+        
+
+        return redirect()->back()->with('success', 'Transaction has been canceled');
     }
 
     public function check(PaymentGateway $order)

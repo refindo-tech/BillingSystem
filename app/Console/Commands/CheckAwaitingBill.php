@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enum\PlanType;
 use App\Enum\PaymentGatewayStatus;
+use App\Enum\PendingUserRechargeStatus;
 use App\Models\UserRecharge;
 use App\Models\PendingUserRecharge;
 use App\Models\PaymentGateway;
@@ -45,7 +46,7 @@ class CheckAwaitingBill extends Command
             
             // Check if there is a pending user recharge
             $awaitingBill = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)
-                ->where('status', 'waiting')
+                ->where('status', PendingUserRechargeStatus::WAITING)
                 ->first();
             
             if ($awaitingBill) {
@@ -107,6 +108,8 @@ class CheckAwaitingBill extends Command
             
             $this->info("Payment gateway created for {$awaitingBill->username}.");
             $this->processTransaction($paymentGateway, $awaitingBill->userRecharge->customer, $activeGateway);
+
+            $awaitingBill->update(['status' => PendingUserRechargeStatus::CONFIRMED]);
         }
     }
 

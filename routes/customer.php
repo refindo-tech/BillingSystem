@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
         Route::get('order/{order}/detail', [CustomerOrderController::class, 'detail'])->name('order.detail');
         Route::get('order/{order}/check', [CustomerOrderController::class, 'check'])->name('order.check');
         Route::get('order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel');
+        Route::get('order/{bill}/activate-bill', [CustomerOrderController::class, 'activateBill'])->name('order.activate-bill');
+        Route::get('order/{bill}/cancel-bill', [CustomerOrderController::class, 'cancelBill'])->name('order.cancel-bill');
         Route::get('/history/order', [CustomerOrderController::class, 'history'])->name('history.order');
 
         // TICKET #
