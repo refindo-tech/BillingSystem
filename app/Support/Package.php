@@ -15,42 +15,43 @@ use App\Models\Router;
 use App\Models\Transaction;
 use App\Models\UserRecharge;
 
-use Illuminate\Support\Facades\Config;
+use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 
+use Illuminate\Support\Facades\DB;
 
 class Package
 {
-    public static function rechargeUser(
-        Customer $customer,
-        Router $mikrotik,
-        Plan $plan,
-        RechargeGateway $gateway,
-        string $channel,
-        string $serviceNumber = null,
-        $validityCycle = null,
-        $expiredAt = null,
-        $username = null,
-        $pppoePassword = null,
-        $server_id = null
+
+public static function rechargeUser(
+    Customer $customer,
+    Router $mikrotik,
+    Plan $plan,
+    RechargeGateway $gateway,
+    string $channel,
+    string $serviceNumber = null,
+    $validityCycle = null,
+    $expiredAt = null,
+    $username = null,
+    $pppoePassword = null,
+    $server_id = null
+) {
+    return DB::transaction(function () use (
+        $customer, $mikrotik, $plan, $gateway, $channel,
+        $serviceNumber, $validityCycle, $expiredAt, $username,
+        $pppoePassword, $server_id
     ) {
         $date_now = now();
         $serviceNumber = $serviceNumber ?? static::generateServiceNumber($customer);
-        
+
         $userRecharge = UserRecharge::where([
             'customer_id' => $customer->id,
             'router_id' => $mikrotik->id,
         ])->first();
-    
+
         $date_exp = $expiredAt ?? static::calculateExpiration($plan, $validityCycle, $userRecharge);
-    
-        // if (!$plan->is_radius) {
-        //     static::createMikrotikAccount($mikrotik, $customer, $plan, $username, $pppoePassword);
-        // } else {
-        //     // TODO: Handle radius integration
-        // }
-    
+
         $userRecharge = static::createUserRecharge(
             $customer,
             $mikrotik,
@@ -66,10 +67,15 @@ class Package
             $server_id
         );
 
-
+        // Jika transaksi gagal, rollback otomatis akan terjadi
+        if (!static::createUserTransaction($userRecharge)) {
+            throw new \Exception('Failed to create user transaction');
+        }
 
         return $userRecharge;
-    }
+    });
+}
+
     
     /**
      * Handles the creation or update of the UserRecharge and Transaction records.
@@ -129,7 +135,7 @@ class Package
         }
 
         //create user transaction
-        static::createUserTransaction($userRecharge);
+        // static::createUserTransaction($userRecharge);
         return $userRecharge;
     }
 
@@ -141,7 +147,7 @@ class Package
 
         $activeGateway = Config::get('active_payment_gateway');
         if (empty($activeGateway)) {
-            $activeGateway = 'xendit';
+            $activeGateway = 'tripay';
         }
         
         // Validate selected payment gateway config
