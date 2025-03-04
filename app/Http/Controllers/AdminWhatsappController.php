@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\KeyWhatsapp;
 use App\Models\Router;
 use App\Models\Server;
+use App\Models\Transaction;
 use App\Models\UserRecharge;
 use App\Models\WhatsappMessage;
 use App\Models\WhatsAppTemplate;
@@ -62,8 +63,7 @@ class AdminWhatsappController extends Controller
             ['message' => $request->pesan_notifikasi] // Update atau buat baru
         );
 
-        return redirect()->route('admin:setting.whatsapp.index')
-            ->with('success', 'Template berhasil disimpan atau diperbarui.');
+        return redirect()->back()->with('success', 'Template berhasil disimpan atau diperbarui.');
     }
 
 
@@ -90,20 +90,12 @@ class AdminWhatsappController extends Controller
     public function clearHistory(Request $request)
     {
         WhatsappMessage::truncate();
-        return redirect()->back()->with('success', 'Riwayat pesan berhasil dihapus.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Riwayat pesan berhasil dihapus.'
+        ]);
+        
     }
-
-    // public function sendBillingNotification()
-    // {
-    //     // Logika pengiriman notifikasi tagihan
-    //     return response()->json(['message' => 'Notifikasi penagihan berhasil dikirim.']);
-    // }
-
-    // public function sendIsolateNotification()
-    // {
-    //     // Logika pengiriman notifikasi isolir
-    //     return response()->json(['message' => 'Notifikasi isolir berhasil dikirim.']);
-    // }
 
     public function sendWhatsAppMessage(Request $request)
     {
@@ -273,7 +265,7 @@ class AdminWhatsappController extends Controller
         // dd($request->all());
         try {
             $customers = UserRecharge::where('status', 'on')
-                ->whereHas('customer')
+                ->with('customer')
                 ->whereDate('expired_at', '>=', now()->toDateString())
                 ->whereDate('expired_at', '<=', now()->addDays(7)->toDateString())
                 ->get();
@@ -285,19 +277,21 @@ class AdminWhatsappController extends Controller
             }
 
             foreach ($customers as $item) {
+                $transaction = Transaction::where('username', $item->customer->username)->latest('id')->first();
+                // dd($transaction);
                 if ($item->isTagihan() && !$item->hasReceivedMessage('Penagihan')) {
                     $billingData = [
                         'service_number'      => $item->service_number,
-                        'customer_name'       => $item->customer->name,
-                        'invoice'             => 'INV-123456',
-                        'periode'             => Carbon::now()->format('F Y'),
-                        'subtotal'            => 100000,
+                        'customer_name'       => $item->customer->fullname,
+                        'invoice'             => $transaction->invoice,
+                        'periode'             => Carbon::now()->locale('id')->translatedFormat('F Y'),
+                        'subtotal'            => $transaction->price,
                         'diskon'              => 5000,
                         'kode_unik'           => rand(100, 999),
                         'ppn'                 => 10000,
                         'adm'                 => 2000,
-                        'total'               => 107000,
-                        'jatuh_tempo'         => Carbon::now()->addDays(5),
+                        'total'               => $transaction->price,
+                        'jatuh_tempo'         => Carbon::parse($item->expired_at)->locale('id')->translatedFormat('d F Y'),
                         'via_transfer_bank'   => "BCA: 1234567890 a.n PT. Contoh",
                         'via_payment_gateway' => "GoPay, ShopeePay, dll.",
                     ];
@@ -324,7 +318,6 @@ class AdminWhatsappController extends Controller
         }
     }
 
-
     // Fungsi generateBillingMessage
     private function generateBillingMessage(UserRecharge $recharge, array $billingData)
     {
@@ -342,7 +335,7 @@ class AdminWhatsappController extends Controller
             '#PPN#'             => number_format($billingData['ppn'], 0, ',', '.'),
             '#ADM#'             => number_format($billingData['adm'], 0, ',', '.'),
             '#TOTAL#'           => number_format($billingData['total'], 0, ',', '.'),
-            '#JATUHTEMPO#'      => Carbon::parse($billingData['jatuh_tempo'])->format('d M Y'),
+            '#JATUHTEMPO#'      => $billingData['jatuh_tempo'],
             '#VIATRANSFERBANK#' => $billingData['via_transfer_bank'],
             '#VIAPAYMENTGATEWAY#' => $billingData['via_payment_gateway'],
         ];
@@ -353,7 +346,7 @@ class AdminWhatsappController extends Controller
     public function sendIsolateNotification(Request $request)
     {
         try {
-            $customers = UserRecharge::whereHas('customer')
+            $customers = UserRecharge::with('customer')
                 ->whereDate('expired_at', '<', now()->toDateString())
                 ->get();
 
@@ -364,14 +357,16 @@ class AdminWhatsappController extends Controller
             }
 
             foreach ($customers as $item) {
+                $transaction = Transaction::where('username', $item->customer->username)->latest('id')->first();
+                // dd($transaction);
                 if (!$item->hasReceivedMessage('Isolir')) {
                     $billingData = [
                         'service_number'      => $item->service_number,
-                        'customer_name'       => $item->customer->name,
-                        'invoice'             => 'INV-123456',
-                        'periode'             => Carbon::now()->format('F Y'),
-                        'total'               => 107000,
-                        'jatuh_tempo'         => Carbon::now()->addDays(3),
+                        'customer_name'       => $item->customer->fullname,
+                        'invoice'             => $transaction->invoice,
+                        'periode'             => Carbon::now()->locale('id')->translatedFormat('F Y'),
+                        'total'               => $transaction->price,
+                        'jatuh_tempo'         => Carbon::parse($item->expired_at)->locale('id')->translatedFormat('d F Y'),
                         'via_transfer_bank'   => "BCA: 1234567890 a.n PT. Contoh",
                         'via_payment_gateway' => "GoPay, ShopeePay, dll.",
                     ];
@@ -410,13 +405,158 @@ class AdminWhatsappController extends Controller
             '#INVOICE#'         => $billingData['invoice'],
             '#PERIODE#'         => $billingData['periode'],
             '#TOTAL#'           => number_format($billingData['total'], 0, ',', '.'),
-            '#JATUHTEMPO#'      => Carbon::parse($billingData['jatuh_tempo'])->format('d M Y'),
+            '#JATUHTEMPO#'      => $billingData['jatuh_tempo'],
             '#VIATRANSFERBANK#' => $billingData['via_transfer_bank'],
             '#VIAPAYMENTGATEWAY#' => $billingData['via_payment_gateway'],
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
+
+    public function sendNewServiceNotification(Request $request)
+    {
+        try {
+            $customers = UserRecharge::where('status', 'new') // Ambil pelanggan baru
+                ->with('customer')
+                ->get();
+
+            if ($customers->isEmpty()) {
+                return back()->with('error', 'Tidak ada pelanggan baru.');
+            }
+
+            foreach ($customers as $item) {
+                if (!$item->hasReceivedMessage('Layanan Baru')) {
+                    $serviceData = [
+                        'service_number'  => $item->service_number,
+                        'customer_name'   => $item->customer->name,
+                        'alamat_pasang'   => $item->customer->installation_address,
+                        'profile'         => $item->package->name,
+                        'harga'           => number_format($item->package->price, 0, ',', '.'),
+                        'jenis_tagihan'   => $item->billing_type,
+                        'tgl_aktif'       => Carbon::parse($item->activated_at)->format('d M Y'),
+                        'tgl_isolir'      => Carbon::parse($item->expired_at)->format('d M Y'),
+                        'phone'           => $item->customer->phonenumber,
+                        'url'             => route('client.login'),
+                    ];
+
+                    $message = $this->generateServiceMessage($item, $serviceData);
+
+                    if ($message) {
+                        $tokenDevice = KeyWhatsapp::first()->key_device;
+                        SendWhatsAppMessageJob::dispatch($item->customer->phonenumber, $message, $tokenDevice);
+
+                        WhatsappMessage::create([
+                            'phone'   => $item->customer->phonenumber,
+                            'message' => $message,
+                            'date'    => now(),
+                            'status'  => 'sent',
+                        ]);
+                    }
+                }
+            }
+
+            return redirect()->back()->with('success', 'Notifikasi layanan baru berhasil dikirim.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    private function generateServiceMessage(UserRecharge $recharge, array $serviceData)
+    {
+        $template = WhatsappTemplate::where('type', 'layanan_baru')->first();
+        if (!$template) return null;
+
+        $replacements = [
+            '#NOLAYANAN#'     => $serviceData['service_number'],
+            '#NAMAPELANGGAN#' => $serviceData['customer_name'],
+            '#ALAMATPASANG#'  => $serviceData['alamat_pasang'],
+            '#PROFILE#'       => $serviceData['profile'],
+            '#HARGA#'         => $serviceData['harga'],
+            '#JENISTAGIHAN#'  => $serviceData['jenis_tagihan'],
+            '#TGLAKTIF#'      => $serviceData['tgl_aktif'],
+            '#TGLISOLIR#'     => $serviceData['tgl_isolir'],
+            '#PHONE#'        => $serviceData['phone'],
+            '#URL#'          => $serviceData['url'],
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+    public function sendInvoiceNotification(Request $request)
+    {
+        try {
+            $payments = UserRecharge::whereDate('expired_at', now()->toDateString())->get();
+
+            if ($payments->isEmpty()) {
+                return back()->with('error', 'Tidak ada pembayaran yang diterima hari ini.');
+            }
+
+            foreach ($payments as $payment) {
+                if (!$payment->hasReceivedMessage('Invoice')) {
+                    $invoiceData = [
+                        'invoice'             => $payment->invoice_number,
+                        'service_number'      => $payment->user_recharge->service_number,
+                        'customer_name'       => $payment->user_recharge->customer->name,
+                        'channel'             => $payment->payment_channel,
+                        'tgl_bayar'           => Carbon::parse($payment->paid_at)->format('d M Y'),
+                        'subtotal'            => $payment->subtotal,
+                        'diskon'              => $payment->discount,
+                        'kode_unik'           => $payment->unique_code,
+                        'ppn'                 => $payment->ppn,
+                        'adm'                 => $payment->admin_fee,
+                        'total'               => $payment->total_paid,
+                        'layanan_aktif_sampai' => $payment->user_recharge->expired_at
+                            ? "Layanan aktif sampai: *" . Carbon::parse($payment->user_recharge->expired_at)->format('d M Y') . "*"
+                            : "",
+                    ];
+
+                    $message = $this->generateInvoiceMessage($invoiceData);
+
+                    if ($message) {
+                        $tokenDevice = KeyWhatsapp::first()->key_device;
+                        SendWhatsAppMessageJob::dispatch($payment->user_recharge->customer->phonenumber, $message, $tokenDevice);
+
+                        WhatsappMessage::create([
+                            'phone'   => $payment->user_recharge->customer->phonenumber,
+                            'message' => $message,
+                            'date'    => now(),
+                            'status'  => 'sent',
+                        ]);
+                    }
+                }
+            }
+
+            return redirect()->back()->with('success', 'Notifikasi invoice berhasil dikirim.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    private function generateInvoiceMessage(array $invoiceData)
+    {
+        $template = WhatsappTemplate::where('type', 'invoice')->first();
+        if (!$template) return null;
+
+        $replacements = [
+            '#INVOICE#'             => $invoiceData['invoice'],
+            '#NOLAYANAN#'           => $invoiceData['service_number'],
+            '#NAMAPELANGGAN#'       => $invoiceData['customer_name'],
+            '#CHANNEL#'             => $invoiceData['channel'],
+            '#TGLBAYAR#'            => $invoiceData['tgl_bayar'],
+            '#SUBTOTAL#'            => number_format($invoiceData['subtotal'], 0, ',', '.'),
+            '#DISKON#'              => number_format($invoiceData['diskon'], 0, ',', '.'),
+            '#KODEUNIK#'            => $invoiceData['kode_unik'],
+            '#PPN#'                 => number_format($invoiceData['ppn'], 0, ',', '.'),
+            '#ADM#'                 => number_format($invoiceData['adm'], 0, ',', '.'),
+            '#TOTAL#'               => number_format($invoiceData['total'], 0, ',', '.'),
+            '#LAYANANAKTIFSAMPAI#'  => $invoiceData['layanan_aktif_sampai'],
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+
+
 
 
 

@@ -31,11 +31,12 @@
                             <i class="bi bi-info-circle-fill"></i> Notif Penagihan
                         </button>
                     </form>
-                    <form id="billing-notif-isolate" action="{{ route('admin:setting.whatsapp.isolate') }}" method="POST">
+                    <form id="billing-notif-isolate" action="{{ route('admin:setting.whatsapp.isolate') }}"
+                        method="POST">
                         @csrf
                         <button type="submit" class="btn btn-danger w-100 w-sm-auto">
-                        <i class="bi bi-info-circle-fill"></i> Notif Isolir
-                    </button>
+                            <i class="bi bi-info-circle-fill"></i> Notif Isolir
+                        </button>
                     </form>
                 </div>
             </div>
@@ -45,6 +46,29 @@
     <div class="app-container container-xxl">
         <x-datatable :dataTable="$dataTable" />
     </div>
+
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalLabel">Detail Pesan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="modalPhone" class="form-label">Nomor Tujuan</label>
+                        <input type="text" id="modalPhone" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalMessageContent" class="form-label">Pesan</label>
+                        <textarea id="modalMessageContent" class="form-control" rows="10" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Modal Kirim Ulang -->
     <div class="modal fade" id="modalResend" tabindex="-1" aria-labelledby="modalResendLabel" aria-hidden="true">
@@ -419,16 +443,14 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: "/admin/setting/whatsapp/clear",
+                                url: "/admin/setting/whatsapp/clear", // Sesuaikan dengan route yang dipakai
                                 type: "POST",
                                 data: {
                                     _token: "{{ csrf_token() }}"
                                 },
                                 success: function(response) {
-                                    if (response.success) {
-                                        Swal.fire('Dihapus!',
-                                                'Riwayat pesan telah dikosongkan.',
-                                                'success')
+                                    if (response.success === true) {
+                                        Swal.fire('Dihapus!', response.message, 'success')
                                             .then(() => location
                                                 .reload()
                                             ); // Refresh halaman setelah sukses
@@ -537,6 +559,19 @@
                             event.target.submit(); // Kirim form setelah konfirmasi
                         }
                     });
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function() {
+                $("#whatsapp_message tbody").on("click", "tr", function() {
+                    let phone = $(this).data("phone"); // Ambil nomor tujuan
+                    let message = $(this).data("message"); // Ambil pesan
+
+                    $("#modalPhone").val(phone); // Isi input nomor tujuan
+                    $("#modalMessageContent").val(message); // Isi textarea pesan
+
+                    $("#messageModal").modal("show"); // Tampilkan modal
                 });
             });
         </script>

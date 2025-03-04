@@ -23,6 +23,20 @@ class WhatsAppMessageDataTable extends DataTable
             ->addColumn('select', function ($row) {
                 return '<input type="checkbox" class="message-checkbox" name="template_ids[]" value="' . $row->id . '">';
             })
+            ->editColumn('message', function ($row) {
+                return \Illuminate\Support\Str::words($row->message, 10, '...'); // Potong teks jadi 30 kata
+            })
+            ->setRowId(function ($row) {
+                return 'row_' . $row->id;
+            })
+            ->setRowAttr([
+                'data-phone' => function ($row) {
+                    return $row->phone; // Simpan nomor tujuan
+                },
+                'data-message' => function ($row) {
+                    return $row->message; // Simpan pesan lengkap
+                }
+            ])
             ->rawColumns(['select']);
     }
 
