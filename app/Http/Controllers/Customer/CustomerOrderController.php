@@ -6,6 +6,7 @@ use App\DataTables\OrderHistoryDataTable;
 use App\Enum\PaymentGatewayStatus;
 use App\Exceptions\AppException;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendWhatsAppMessageJob;
 use App\Models\PaymentGateway;
 use App\Models\Plan;
 use App\Models\Router;
@@ -13,7 +14,9 @@ use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 use App\Models\Customer;
-
+use App\Models\KeyWhatsapp;
+use App\Models\WhatsappMessage;
+use App\Models\WhatsAppTemplate;
 use Illuminate\Support\Collection;
 
 class CustomerOrderController extends Controller
@@ -98,22 +101,42 @@ class CustomerOrderController extends Controller
 
     public function check(PaymentGateway $order)
     {
-        $customer = Customer::find(auth()->id()); // This should be a Customer model instance
-        $customer = auth()->user(); // This should be a Customer model instance
+        $customer = Customer::find(auth()->id()); // Ambil data customer
         if (!$customer instanceof Customer) {
             throw new AppException('Authenticated user is not a customer');
         }
 
         try {
+            // Cek status pembayaran berdasarkan gateway
             if ($order->gateway === 'xendit') {
                 Xendit::validateConfig();
                 Xendit::getStatus($order, $customer);
-                
             } elseif ($order->gateway === 'tripay') {
                 Tripay::validateConfig();
                 Tripay::getStatus($order, $customer);
             } else {
                 throw new AppException('Invalid payment gateway.');
+            }
+
+            // Cek apakah status pembayaran sukses
+            if ($order->status === PaymentGatewayStatus::PAID) {
+                // Generate pesan otomatis
+                $message = $this->generatePaymentMessage($order, $customer);
+
+                if (!empty($customer->phonenumber) && $message) {
+                    $tokenDevice = KeyWhatsapp::first()->key_device;
+
+                    // Kirim pesan WhatsApp via Job Queue
+                    SendWhatsAppMessageJob::dispatch($customer->phonenumber, $message, $tokenDevice);
+
+                    // Simpan log pesan ke database
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $message,
+                        'date'    => now(),
+                        'status'  => 'sent',
+                    ]);
+                }
             }
 
             return redirect()->route('customer:order.detail', $order)->with('success', 'Transaction has been paid');
@@ -122,6 +145,31 @@ class CustomerOrderController extends Controller
         }
     }
 
+    private function generatePaymentMessage(PaymentGateway $order, $customer)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Pembayaran'
+        $template = WhatsAppTemplate::where('type', 'invoice')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#INVOICE#'              => $order->id, // Sesuaikan dengan ID invoice
+            '#NOLAYANAN#'            => $order->router_id ?? '-', // Jika ada nomor layanan
+            '#NAMAPELANGGAN#'        => $customer->fullname,
+            '#CHANNEL#'              => strtoupper($order->payment_channel), // XENDIT, TRIPAY, dll.
+            '#TGLBAYAR#'             => $order->paid_date->format('d-m-Y H:i'),
+            '#SUBTOTAL#'             => number_format($order->price, 0, ',', '.'),
+            '#DISKON#'               => number_format(0, 0, ',', '.'), // Sesuaikan jika ada diskon
+            '#KODEUNIK#'             => number_format(0, 0, ',', '.'), // Sesuaikan jika ada kode unik
+            '#PPN#'                  => number_format(0, 0, ',', '.'), // Sesuaikan jika ada PPN
+            '#ADM#'                  => number_format(0, 0, ',', '.'), // Sesuaikan jika ada biaya admin
+            '#TOTAL#'                => number_format($order->price, 0, ',', '.'),
+            '#LAYANANAKTIFSAMPAI#'   => optional($order->paid_date)->addMonth()->format('d-m-Y') ?? '-',// Jika layanan aktif 1 bulan
+        ];
+
+        // Mengganti placeholder dalam template dengan nilai dari transaksi
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
 
     public function cancel(PaymentGateway $order)
     {

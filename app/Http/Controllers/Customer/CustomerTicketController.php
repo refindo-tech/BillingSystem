@@ -11,7 +11,10 @@ use App\Enum\TicketStatus;
 use App\Http\Requests\TicketRequest;
 
 use App\DataTables\CustomerTicketDataTable;
-
+use App\Jobs\SendWhatsAppMessageJob;
+use App\Models\KeyWhatsapp;
+use App\Models\WhatsappMessage;
+use App\Models\WhatsAppTemplate;
 use App\Support\Facades\Log;
 
 class CustomerTicketController extends Controller
@@ -21,7 +24,7 @@ class CustomerTicketController extends Controller
      */
     public function index(CustomerTicketDataTable $datatable)
     {
-        
+
         // $tickets = Ticket::where('customer_id', auth()->id())->latest()->get();
         // dd($tickets);
         // return view('customer.ticket.index', compact('tickets'));
@@ -49,15 +52,65 @@ class CustomerTicketController extends Controller
      */
     public function store(TicketRequest $request)
     {
+        try {
+            // Validasi input dari request
+            $ticketData = $request->validated();
 
-        $ticketData = $request->validated();
-        $ticketData['ticket_number'] = 'T' . (Ticket::max('id') + 1);
-        $ticketData['status'] = TicketStatus::OPEN;
-        $ticketData['customer_id'] = auth()->id();
+            // Generate nomor tiket berdasarkan ID terakhir + 1
+            $ticketData['ticket_number'] = 'T' . (Ticket::max('id') + 1);
+            $ticketData['status'] = TicketStatus::OPEN;
+            $ticketData['customer_id'] = auth()->id();
 
-        Ticket::create($ticketData);
-        return redirect()->route('customer:ticket.index')->with('success', 'Ticket submitted successfully.');
+            // Simpan data tiket ke database
+            $newTicket = Ticket::create($ticketData);
+
+            // Ambil data tiket yang baru dibuat, termasuk relasi dengan customer
+            $ticket = Ticket::with('customer')->where('id', $newTicket->id)->first();
+
+            // Buat pesan WhatsApp berdasarkan template
+            $message = $this->generateTicketMessage($ticket);
+
+            // Kirim pesan via WhatsApp jika nomor telepon tersedia
+            if (!empty($ticket->customer->phonenumber) && $message) {
+                $tokenDevice = KeyWhatsapp::first()->key_device;
+                SendWhatsAppMessageJob::dispatch($ticket->customer->phonenumber, $message, $tokenDevice);
+
+                // Simpan log pesan ke database
+                WhatsappMessage::create([
+                    'phone'   => $ticket->customer->phonenumber,
+                    'message' => $message,
+                    'date'    => now(),
+                    'status'  => 'sent',
+                ]);
+            }
+
+            return redirect()->route('customer:ticket.index')->with('success', 'Ticket submitted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
+
+    private function generateTicketMessage(Ticket $ticket)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Tiket Baru'
+        $template = WhatsAppTemplate::where('type', 'opentiket')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOTIKET#'    => $ticket->ticket_number,
+            '#STATUS#'     => $ticket->status,
+            '#NAMAPELANGGAN#' => $ticket->customer->fullname,
+            '#SUBJECT#'    => $ticket->subject,
+            '#KELUHAN#'    => $ticket->message,
+            '#PRIORITAS#'  => $ticket->priority,
+        ];
+
+        // Mengganti placeholder dengan nilai dari tiket
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+
 
     /**
      * Display the specified ticket.
@@ -77,6 +130,4 @@ class CustomerTicketController extends Controller
         $ticket->delete();
         return redirect()->route('admin:ticket.index')->with('success', 'Ticket deleted successfully.');
     }
-
-
 }

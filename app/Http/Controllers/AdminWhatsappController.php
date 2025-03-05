@@ -486,78 +486,78 @@ class AdminWhatsappController extends Controller
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
     // invoie belum gatau sistem paymentnya
-    public function sendInvoiceNotification(Request $request)
-    {
-        try {
-            $payments = UserRecharge::whereDate('expired_at', now()->toDateString())->get();
+    // public function sendInvoiceNotification(Request $request)
+    // {
+    //     try {
+    //         $payments = UserRecharge::whereDate('expired_at', now()->toDateString())->get();
 
-            if ($payments->isEmpty()) {
-                return back()->with('error', 'Tidak ada pembayaran yang diterima hari ini.');
-            }
+    //         if ($payments->isEmpty()) {
+    //             return back()->with('error', 'Tidak ada pembayaran yang diterima hari ini.');
+    //         }
 
-            foreach ($payments as $payment) {
-                if (!$payment->hasReceivedMessage('Invoice')) {
-                    $invoiceData = [
-                        'invoice'             => $payment->invoice_number,
-                        'service_number'      => $payment->user_recharge->service_number,
-                        'customer_name'       => $payment->user_recharge->customer->name,
-                        'channel'             => $payment->payment_channel,
-                        'tgl_bayar'           => Carbon::parse($payment->paid_at)->format('d M Y'),
-                        'subtotal'            => $payment->subtotal,
-                        'diskon'              => $payment->discount,
-                        'kode_unik'           => $payment->unique_code,
-                        'ppn'                 => $payment->ppn,
-                        'adm'                 => $payment->admin_fee,
-                        'total'               => $payment->total_paid,
-                        'layanan_aktif_sampai' => $payment->user_recharge->expired_at
-                            ? "Layanan aktif sampai: *" . Carbon::parse($payment->user_recharge->expired_at)->format('d M Y') . "*"
-                            : "",
-                    ];
+    //         foreach ($payments as $payment) {
+    //             if (!$payment->hasReceivedMessage('Invoice')) {
+    //                 $invoiceData = [
+    //                     'invoice'             => $payment->invoice_number,
+    //                     'service_number'      => $payment->user_recharge->service_number,
+    //                     'customer_name'       => $payment->user_recharge->customer->name,
+    //                     'channel'             => $payment->payment_channel,
+    //                     'tgl_bayar'           => Carbon::parse($payment->paid_at)->format('d M Y'),
+    //                     'subtotal'            => $payment->subtotal,
+    //                     'diskon'              => $payment->discount,
+    //                     'kode_unik'           => $payment->unique_code,
+    //                     'ppn'                 => $payment->ppn,
+    //                     'adm'                 => $payment->admin_fee,
+    //                     'total'               => $payment->total_paid,
+    //                     'layanan_aktif_sampai' => $payment->user_recharge->expired_at
+    //                         ? "Layanan aktif sampai: *" . Carbon::parse($payment->user_recharge->expired_at)->format('d M Y') . "*"
+    //                         : "",
+    //                 ];
 
-                    $message = $this->generateInvoiceMessage($invoiceData);
+    //                 $message = $this->generateInvoiceMessage($invoiceData);
 
-                    if ($message) {
-                        $tokenDevice = KeyWhatsapp::first()->key_device;
-                        SendWhatsAppMessageJob::dispatch($payment->user_recharge->customer->phonenumber, $message, $tokenDevice);
+    //                 if ($message) {
+    //                     $tokenDevice = KeyWhatsapp::first()->key_device;
+    //                     SendWhatsAppMessageJob::dispatch($payment->user_recharge->customer->phonenumber, $message, $tokenDevice);
 
-                        WhatsappMessage::create([
-                            'phone'   => $payment->user_recharge->customer->phonenumber,
-                            'message' => $message,
-                            'date'    => now(),
-                            'status'  => 'sent',
-                        ]);
-                    }
-                }
-            }
+    //                     WhatsappMessage::create([
+    //                         'phone'   => $payment->user_recharge->customer->phonenumber,
+    //                         'message' => $message,
+    //                         'date'    => now(),
+    //                         'status'  => 'sent',
+    //                     ]);
+    //                 }
+    //             }
+    //         }
 
-            return redirect()->back()->with('success', 'Notifikasi invoice berhasil dikirim.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
+    //         return redirect()->back()->with('success', 'Notifikasi invoice berhasil dikirim.');
+    //     } catch (\Exception $e) {
+    //         return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    //     }
+    // }
 
-    private function generateInvoiceMessage(array $invoiceData)
-    {
-        $template = WhatsappTemplate::where('type', 'invoice')->first();
-        if (!$template) return null;
+    // private function generateInvoiceMessage(array $invoiceData)
+    // {
+    //     $template = WhatsappTemplate::where('type', 'invoice')->first();
+    //     if (!$template) return null;
 
-        $replacements = [
-            '#INVOICE#'             => $invoiceData['invoice'],
-            '#NOLAYANAN#'           => $invoiceData['service_number'],
-            '#NAMAPELANGGAN#'       => $invoiceData['customer_name'],
-            '#CHANNEL#'             => $invoiceData['channel'],
-            '#TGLBAYAR#'            => $invoiceData['tgl_bayar'],
-            '#SUBTOTAL#'            => number_format($invoiceData['subtotal'], 0, ',', '.'),
-            '#DISKON#'              => number_format($invoiceData['diskon'], 0, ',', '.'),
-            '#KODEUNIK#'            => $invoiceData['kode_unik'],
-            '#PPN#'                 => number_format($invoiceData['ppn'], 0, ',', '.'),
-            '#ADM#'                 => number_format($invoiceData['adm'], 0, ',', '.'),
-            '#TOTAL#'               => number_format($invoiceData['total'], 0, ',', '.'),
-            '#LAYANANAKTIFSAMPAI#'  => $invoiceData['layanan_aktif_sampai'],
-        ];
+    //     $replacements = [
+    //         '#INVOICE#'             => $invoiceData['invoice'],
+    //         '#NOLAYANAN#'           => $invoiceData['service_number'],
+    //         '#NAMAPELANGGAN#'       => $invoiceData['customer_name'],
+    //         '#CHANNEL#'             => $invoiceData['channel'],
+    //         '#TGLBAYAR#'            => $invoiceData['tgl_bayar'],
+    //         '#SUBTOTAL#'            => number_format($invoiceData['subtotal'], 0, ',', '.'),
+    //         '#DISKON#'              => number_format($invoiceData['diskon'], 0, ',', '.'),
+    //         '#KODEUNIK#'            => $invoiceData['kode_unik'],
+    //         '#PPN#'                 => number_format($invoiceData['ppn'], 0, ',', '.'),
+    //         '#ADM#'                 => number_format($invoiceData['adm'], 0, ',', '.'),
+    //         '#TOTAL#'               => number_format($invoiceData['total'], 0, ',', '.'),
+    //         '#LAYANANAKTIFSAMPAI#'  => $invoiceData['layanan_aktif_sampai'],
+    //     ];
 
-        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
-    }
+    //     return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    // }
 
 
 
