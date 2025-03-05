@@ -277,8 +277,7 @@ public static function rechargeUser(
      */
     public static function calculateExpiration(Plan $plan, $validityCycle, $userRecharge)
     {
-        $expiredAt = $userRecharge->expired_at;
-
+        $expiredAt = $userRecharge->expired_at->isPast() ? now() : $userRecharge->expired_at;
         return match ($validityCycle) {
             ValidityCycle::FIXED, ValidityCycle::MONTHLY => date('Y-m-d H:i:s', strtotime($expiredAt. ' + 1 month')),
             default => match ($plan->validity_unit) {
