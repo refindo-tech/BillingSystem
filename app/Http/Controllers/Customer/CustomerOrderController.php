@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Customer;
 use App\DataTables\OrderHistoryDataTable;
 use App\Enum\PaymentGatewayStatus;
 use App\Enum\PendingUserRechargeStatus;
+use App\Enum\ValidityCycle;
+use App\Enum\ValidityUnit;
+use App\Enum\RechargeGateway;
 use App\Exceptions\AppException;
 use App\Http\Controllers\Controller;
 use App\Models\PaymentGateway;
@@ -15,6 +18,8 @@ use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 use App\Models\Customer;
+
+use App\Support\Package;
 
 
 use Illuminate\Support\Collection;
@@ -29,27 +34,9 @@ class CustomerOrderController extends Controller
 
     public function buy(Plan $plan)
     {
+        
         $user = auth()->user();
 
-        if (strpos($user->email, '@') === false) {
-            return redirect()->route('customer:profile.edit')->with('error', 'Please enter your email address');
-        }
-
-        // Get active payment gateway
-        $activeGateway = Config::get('active_payment_gateway');
-        //if empty, set default to xendit
-        if (empty($activeGateway)) {
-            $activeGateway = 'tripay';
-        }
-
-        // Validate selected payment gateway config
-        if ($activeGateway === 'xendit') {
-            Xendit::validateConfig();
-        } elseif ($activeGateway === 'tripay') {
-            Tripay::validateConfig();
-        } else {
-            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
-        }
 
         // Check for existing unpaid transaction
         $order = PaymentGateway::where('username', $user->username)
@@ -60,34 +47,96 @@ class CustomerOrderController extends Controller
             return redirect()->route('customer:order.detail', $order)->with('error', 'You already have an unpaid transaction. Please cancel or pay it.');
         }
 
-        if (empty($order)) {
-            $order = PaymentGateway::create([
-                'username' => $user->username,
-                'gateway' => $activeGateway,
-                'plan_id' => $plan->id,
-                'plan_name' => $plan->name,
-                'router_id' => $plan->router->id,
-                'router_name' => $plan->router->name,
-                'price' => $plan->price,
-                'status' => PaymentGatewayStatus::UNPAID,
-            ]);
-        } else {
-            $order->update([
-                'username' => $user->username,
-                'gateway' => $activeGateway,
-                'plan_id' => $plan->id,
-                'plan_name' => $plan->name,
-                'router_id' => $plan->router->id,
-                'router_name' => $plan->router->name,
-                'price' => $plan->price,
-                'status' => PaymentGatewayStatus::UNPAID,
-            ]);
-        }
+        $serviceNumber = Package::generateServiceNumber($user);
+        $username = $serviceNumber . '@netplus.id';
+        $password = $user->pppoe_password;
+        $rechargeGateway = Config::get('recharge_gateway', 'tripay');
+        $channel = 'BRIVA';
+        $dateNow = now();
+        $dateExpired = match ($plan->validity_unit) {
+            ValidityUnit::MONTHS => $dateNow->copy()->addMonths($plan->validity),
+            ValidityUnit::DAYS => $dateNow->copy()->addDays($plan->validity),
+            ValidityUnit::HRS => $dateNow->copy()->addHours($plan->validity),
+            ValidityUnit::MINS => $dateNow->copy()->addMinutes($plan->validity),
+            default => $dateNow,
+        };
+        $validityCycle = ValidityCycle::PROFILE;
+        $server_id = $plan->router->server_id;
+        $router = $plan->router;
 
-        // Process transaction based on active gateway
-        return $activeGateway === 'xendit'
-            ? Xendit::createTransaction($order, $user)
-            : Tripay::createTransaction($order, $user);
+        $userRecharge = Package::rechargeUser(
+            $user, 
+            $router, 
+            $plan, 
+            RechargeGateway::USER, 
+            $channel,
+            $serviceNumber,
+            $validityCycle,
+            $dateExpired, 
+            $username, 
+            $password, 
+            $server_id);
+
+        redirect()->route('customer.order.list', $userRecharge)->with('success', 'Transaction has been created');
+
+
+        // if (strpos($user->email, '@') === false) {
+        //     return redirect()->route('customer:profile.edit')->with('error', 'Please enter your email address');
+        // }
+
+        // // Get active payment gateway
+        // $activeGateway = Config::get('active_payment_gateway');
+        // //if empty, set default to xendit
+        // if (empty($activeGateway)) {
+        //     $activeGateway = 'tripay';
+        // }
+
+        // // Validate selected payment gateway config
+        // if ($activeGateway === 'xendit') {
+        //     Xendit::validateConfig();
+        // } elseif ($activeGateway === 'tripay') {
+        //     Tripay::validateConfig();
+        // } else {
+        //     return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
+        // }
+
+        // // Check for existing unpaid transaction
+        // $order = PaymentGateway::where('username', $user->username)
+        //     ->where('status', PaymentGatewayStatus::UNPAID)
+        //     ->first();
+
+        // if ($order && $order->pg_url_payment) {
+        //     return redirect()->route('customer:order.detail', $order)->with('error', 'You already have an unpaid transaction. Please cancel or pay it.');
+        // }
+
+        // if (empty($order)) {
+        //     $order = PaymentGateway::create([
+        //         'username' => $user->username,
+        //         'gateway' => $activeGateway,
+        //         'plan_id' => $plan->id,
+        //         'plan_name' => $plan->name,
+        //         'router_id' => $plan->router->id,
+        //         'router_name' => $plan->router->name,
+        //         'price' => $plan->price,
+        //         'status' => PaymentGatewayStatus::UNPAID,
+        //     ]);
+        // } else {
+        //     $order->update([
+        //         'username' => $user->username,
+        //         'gateway' => $activeGateway,
+        //         'plan_id' => $plan->id,
+        //         'plan_name' => $plan->name,
+        //         'router_id' => $plan->router->id,
+        //         'router_name' => $plan->router->name,
+        //         'price' => $plan->price,
+        //         'status' => PaymentGatewayStatus::UNPAID,
+        //     ]);
+        // }
+
+        // // Process transaction based on active gateway
+        // return $activeGateway === 'xendit'
+        //     ? Xendit::createTransaction($order, $user)
+        //     : Tripay::createTransaction($order, $user);
     }
 
     public function detail(PaymentGateway $order)
