@@ -14,6 +14,7 @@ use App\Models\PaymentGateway;
 use App\Models\PendingUserRecharge;
 use App\Models\Plan;
 use App\Models\Router;
+use App\Models\Server;
 use App\Support\Facades\Config;
 use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
@@ -89,7 +90,7 @@ class CustomerOrderController extends Controller
 
         // Validity cycle & router settings
         $validityCycle = ValidityCycle::PROFILE;
-        $server_id = $plan->router->server_id;
+        $server_id = Server::where('router_id', $plan->router_id)->first()->id;
         $router = $plan->router;
 
         // Recharge user account
