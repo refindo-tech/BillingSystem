@@ -68,9 +68,13 @@
                                                     </tr>
                                                     <tr>
                                                         <td colspan="2">
-                                                            <a href="{{route('customer:order.buy', $plan)}}" class="btn btn-warning btn-sm w-full">
+                                                            {{-- <a href="{{route('customer:order.buy', $plan)}}" class="btn btn-warning btn-sm w-full">
+                                                                BUY
+                                                            </a> --}}
+                                                            <a href="javascript:void(0);" onclick="confirmPurchase('{{ route('customer:order.buy', $plan) }}')" class="btn btn-warning btn-sm w-full">
                                                                 BUY
                                                             </a>
+                                                            
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -86,4 +90,40 @@
             </div>
         @endforeach
     </div>
+
+    @push('addon-script')
+
+    <script>
+        let activeChannels = @json($activeChannels);
+    
+        function confirmPurchase(url) {
+            Swal.fire({
+                title: 'Confirm Purchase',
+                text: 'Please select a payment method',
+                icon: 'question',
+                input: 'select',
+                inputOptions: activeChannels,
+                inputPlaceholder: 'Select Payment Method',
+                showCancelButton: true,
+                confirmButtonText: 'Proceed',
+                cancelButtonText: 'Cancel',
+                preConfirm: (paymentMethod) => {
+                    if (!paymentMethod) {
+                        Swal.showValidationMessage('Please select a payment method');
+                    }
+                    return paymentMethod;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url + '?gateway=' + result.value;
+                }
+            });
+        }
+    </script>
+    
+    @endpush
+
 </x-customer-layout>
+
+
+
