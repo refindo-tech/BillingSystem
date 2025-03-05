@@ -75,8 +75,6 @@ class AdminTicketController extends Controller
             // Buat pesan berdasarkan template
             $message = $this->generateTicketMessage($ticket);
 
-            // dd($message,$ticket->customer->phonenumber);
-
             // Kirim pesan via WhatsApp jika nomor telepon tersedia
             if (!empty($ticket->customer->phonenumber) && $message) {
                 $tokenDevice = KeyWhatsapp::first()->key_device;
