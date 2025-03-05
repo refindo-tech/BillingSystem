@@ -260,7 +260,7 @@ public static function rechargeUser(
     /**
      * Generates a unique service number.
      */
-    private static function generateServiceNumber(Customer $customer)
+    public static function generateServiceNumber(Customer $customer)
     {
         $prefix = '00000';
         $serviceNumber = date('y');
@@ -275,10 +275,9 @@ public static function rechargeUser(
     /**
      * Calculates the expiration date.
      */
-    private static function calculateExpiration(Plan $plan, $validityCycle, $userRecharge)
+    public static function calculateExpiration(Plan $plan, $validityCycle, $userRecharge)
     {
-        $expiredAt = $userRecharge->expired_at;
-
+        $expiredAt = $userRecharge->expired_at->isPast() ? now() : $userRecharge->expired_at;
         return match ($validityCycle) {
             ValidityCycle::FIXED, ValidityCycle::MONTHLY => date('Y-m-d H:i:s', strtotime($expiredAt. ' + 1 month')),
             default => match ($plan->validity_unit) {

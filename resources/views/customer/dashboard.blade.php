@@ -56,6 +56,21 @@
                                     <td>{{ $bill->status }}</td>
                                 </tr>
                                 <tr>
+                                    <td>Username</td>
+                                    <td>{{ $bill->username }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Password</td>
+                                    {{-- <td>{{ $bill->pppoe_password }}</td> --}}
+                                    <td class="py-0">
+                                        <input type="password" value="{{ $bill->pppoe_password }}"
+                                            class="form-control form-control-sm"
+                                            style="width:120px;border: 0px; text-align: right;"
+                                            onmouseleave="this.type = 'password'" onmouseenter="this.type = 'text'"
+                                            onclick="this.select()" />
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>EXPIRES ON</td>
                                     <td @if (now() > $bill->expired_at) class="text-danger" @endif>
                                         {{ $bill->expired_at }}</td>
