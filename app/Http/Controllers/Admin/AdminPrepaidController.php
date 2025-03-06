@@ -280,10 +280,6 @@ class AdminPrepaidController extends Controller
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
 
-
-
-
-
     public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
 
