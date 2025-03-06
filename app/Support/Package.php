@@ -237,6 +237,11 @@ public static function rechargeUser(
             ? static::calculateExpiration($userRecharge->plan, $userRecharge->validity_cycle, $userRecharge)
             : $userRecharge->expired_at;
 
+        $pendingUserRecharge = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)->first();
+        $price = ($trasaction_type == 'recharge' && $pendingUserRecharge && $pendingUserRecharge->price !== null)
+            ? $pendingUserRecharge->price
+            : $userRecharge->plan->price;
+
         $userRecharge->update([
             'status' => 'on',
             'expired_at' => $expiredAt,
@@ -246,7 +251,7 @@ public static function rechargeUser(
             'invoice' => 'INV-' . Package::_raid(5),
             'username' => $userRecharge->customer->username,
             'plan_name' => $userRecharge->plan->name,
-            'price' => $userRecharge->plan->price,
+            'price' => $price,
             'recharged_at' => $userRecharge->recharged_at,
             'expired_at' => $userRecharge->expired_at,
             'method' => "$rechargeGateway->value - $channel",
