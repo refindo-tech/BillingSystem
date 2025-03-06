@@ -53,6 +53,25 @@ class AdminPrepaidController extends Controller
      */
     public function createUser()
     {
+
+        $activeGateway = Config::get('active_payment_gateway');
+        
+        $channelsConfig = config("payment.{$activeGateway}.channels");
+        $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
+
+        if (empty($paymentChannels[0])) {
+            $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
+            return [$channel['id'] => $channel['name']];
+            })->toArray();
+        } else {
+            $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+            return [$channel => $channelConfig['name']];
+            })->toArray();
+        }
+
+        // dd($activeChannels);
+
         $mode = 'add';
         $prefix = '00000';
         $customers = Customer::all()->mapWithKeys(fn($customer) => [
@@ -64,11 +83,27 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultPlanType = PlanType::HOTSPOT;
         $defaultValidityCycle = ValidityCycle::PROFILE;
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'validityCycles', 'defaultValidityCycle'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'validityCycles', 'defaultValidityCycle', 'activeChannels'));
     }
 
     public function rechargeUser(Customer $user)
     {
+
+        $activeGateway = Config::get('active_payment_gateway');
+        $channelsConfig = config("payment.{$activeGateway}.channels");
+        $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
+
+        if (empty($paymentChannels[0])) {
+            $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
+            return [$channel['id'] => $channel['name']];
+            })->toArray();
+        } else {
+            $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
+            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+            return [$channel => $channelConfig['name']];
+            })->toArray();
+        }
+
         $mode = 'add';
         $customers = Customer::all()->mapWithKeys(fn($customer) => [
             $customer->id => $customer->username . ' - ' . $customer->fullname . ' - ' . $customer->email,
@@ -79,7 +114,7 @@ class AdminPrepaidController extends Controller
         $validityCycles = array_column(ValidityCycle::cases(), 'value', 'value');
         $defaultValidityCycle = ValidityCycle::PROFILE;
 
-        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle'));
+        return view('admin.prepaid.user.form', compact('mode', 'customers', 'planTypes', 'defaultPlanType', 'user', 'validityCycles', 'defaultValidityCycle', 'activeChannels'));
     }
 
     public function editUser(UserRecharge $user)
@@ -130,7 +165,6 @@ class AdminPrepaidController extends Controller
 
     public function storeUser(PrepaidUserRequest $request)
     {
-        // dd($request->all());
         try {
             $customer = Customer::findOrFail($request->customer_id);
             $router = Router::findOrFail($request->router_id);
@@ -138,13 +172,21 @@ class AdminPrepaidController extends Controller
             $username = $request->username;
             $password = $request->pppoe_password;
             $server_id = $request->server_id;
+            $payment_channel = $request->payment_channel;
 
             // Recharge user
-            Package::rechargeUser($customer, $router, $plan, RechargeGateway::RECHARGE, auth()->user()->fullname, $request->service_number, $request->validity_cycle, $request->expired_at, $username, $password, $server_id);
-
-            // Ambil invoice terakhir berdasarkan username pelanggan
-            $invoice = Transaction::where('username', $customer->username)
-                ->latest('id')->first();
+            $userRecharge = Package::rechargeUser(
+                $customer, 
+                $router, 
+                $plan, 
+                RechargeGateway::RECHARGE, 
+                $payment_channel,
+                $request->service_number, 
+                $request->validity_cycle, 
+                $request->expired_at, 
+                $username, 
+                $password, 
+                $server_id);
 
             // Generate pesan WhatsApp
             $message = $this->generateRechargeMessage($customer, $plan, $request);
@@ -177,10 +219,11 @@ class AdminPrepaidController extends Controller
 
             Log::put('Recharge account ' . $customer->username, ['admin' => auth()->user()]);
 
-            return redirect()->route('admin:prepaid.invoice.show', $invoice);
+            return redirect()->route('admin:prepaid.user.index')->with('success', __('success.created'));
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    
     }
 
     private function generateRechargeMessage(Customer $customer, Plan $plan, $request)
@@ -240,58 +283,6 @@ class AdminPrepaidController extends Controller
 
 
 
-    public function createUserTransaction(Customer $customer, Plan $plan)
-    {
-        $activeGateway = Config::get('active_payment_gateway');
-        if (empty($activeGateway)) {
-            $activeGateway = 'xendit';
-        }
-        $error = null;
-        if ($activeGateway === 'xendit') {
-            Xendit::validateConfig();
-        } elseif ($activeGateway === 'tripay') {
-            Tripay::validateConfig();
-        } else {
-            return redirect()->back()->with('error', 'Invalid payment gateway configuration.');
-        }
-
-        $order = PaymentGateway::where('username', $customer->username)
-            ->where('status', PaymentGatewayStatus::UNPAID)
-            ->first();
-
-        // Check for existing unpaid transaction
-        if ($order && $order->pg_url_payment) {
-            return false;
-        }
-
-        if (empty($order)) {
-            $order = PaymentGateway::create([
-                'username' => $customer->username,
-                'gateway' => $activeGateway,
-                'plan_id' => $plan->id,
-                'plan_name' => $plan->name,
-                'router_id' => $plan->router->id,
-                'router_name' => $plan->router->name,
-                'price' => $plan->price,
-                'status' => PaymentGatewayStatus::UNPAID,
-            ]);
-        } else {
-            $order->update([
-                'username' => $customer->username,
-                'gateway' => $activeGateway,
-                'plan_id' => $plan->id,
-                'plan_name' => $plan->name,
-                'router_id' => $plan->router->id,
-                'router_name' => $plan->router->name,
-                'price' => $plan->price,
-                'status' => PaymentGatewayStatus::UNPAID,
-            ]);
-        }
-
-        return $activeGateway === 'xendit'
-            ? Xendit::createTransaction($order, $customer)
-            : Tripay::createTransaction($order, $customer);
-    }
 
     public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
@@ -300,7 +291,11 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($request->customer_id);
         $plan = Plan::findOrFail($request->plan_id);
         $newPlan = Plan::findOrFail($request->new_plan_id);
+        $username = $request->username;
+        $password = $request->pppoe_password;
 
+        Package::changeTo($customer, $newPlan, $user, $username, $password);
+        
         $user->plan_id = $newPlan->id;
         $user->expired_at = match ($request->upgrade_type) {
             UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
@@ -308,12 +303,7 @@ class AdminPrepaidController extends Controller
             default => $user->expired_at,
         };
         $user->save();
-
-        $username = $request->username;
-        $password = $request->pppoe_password;
-
-        Package::changeTo($customer, $newPlan, $user, $username, $password);
-        Log::put('Update account ' . $customer->username, auth()->user());
+        Log::put('Update account '.$customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
     }
@@ -333,8 +323,9 @@ class AdminPrepaidController extends Controller
                 Mikrotik::removePpoeActive($client, $user->username);
             }
         }
-        $user->delete();
-        Log::put('Delete account ' . $user->username, auth()->user());
+        PaymentGateway::where('user_recharge_id', $user->id)->delete();
+        $user->delete();   
+        Log::put('Delete account '.$user->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.deleted'));
     }

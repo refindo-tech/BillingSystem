@@ -9,6 +9,8 @@ use App\Models\UserRecharge;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+use App\Support\Facades\Config;
+
 class PrepaidUserRequest extends FormRequest
 {
     /**
@@ -26,12 +28,20 @@ class PrepaidUserRequest extends FormRequest
      */
     public function rules(): array
     {
+
+        $activeGateway = Config::get('active_payment_gateway') ?? 'xendit';
+        $paymentChannel = Config::get($activeGateway . '_channels');
+        $paymentChannel = explode(',', $paymentChannel);
+
         return [
             'customer_id' => ['required', Rule::exists(Customer::class, 'id')],
             'router_id' => ['required', Rule::exists(Router::class, 'id')],
             'plan_id' => ['required', Rule::exists(Plan::class, 'id')],
             'username' => ['required', Rule::unique(UserRecharge::class, 'username')],
             'pppoe_password' => ['required', 'string', 'max:255'],
+            // 'payment_channel' => ['required', 'string', 'max:255'],
+            'payment_channel' => ['required', Rule::in($paymentChannel)],
+
         ];
     }
 }

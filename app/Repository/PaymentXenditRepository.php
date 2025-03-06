@@ -56,6 +56,7 @@ class PaymentXenditRepository
             'external_id' => (string) $trx['id'],
             'amount' => $trx['price'],
             'description' => $trx['plan_name'],
+            'channel_code' => $trx['payment_channel'],
             'customer' => [
                 'mobile_number' => $user['phonenumber'],
             ],
@@ -69,6 +70,7 @@ class PaymentXenditRepository
             'success_redirect_url' => route('customer:order.check', $trx),
             'failure_redirect_url' => route('customer:order.check', $trx),
         ];
+        
         $result = Http::withBasicAuth($this->config->get('xendit_secret_key'), '')
             ->post($this->baseUrl.'/invoices', $json)->collect();
         if (! $result->get('id')) {
@@ -98,7 +100,7 @@ class PaymentXenditRepository
 
         if (in_array($result['status'], ['PAID', 'SETTLED']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
-                Package::rechargeUser($user, $trx->router, $trx->plan, RechargeGateway::XENDIT, $result['payment_channel']);
+                Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel'], $trx->transaction_type);
             } catch (Exception $e) {
                 throw new AppException('Failed to activate your package, please try again');
             }

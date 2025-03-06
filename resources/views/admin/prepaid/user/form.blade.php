@@ -24,6 +24,10 @@
                         tooltip="2 digit tahun + ID pelanggan + 2 digit urutan layanan by pelanggan."
                         :value="@$user['service_number'] ?? ''" />
 
+                    {{-- Payment channel --}}
+                    <x-form.group.select name="payment_channel" label="Payment Channel" :options="$activeChannels" required
+                        :value="@$user['payment_channel']" />
+
 
                     <hr>
 
@@ -36,7 +40,7 @@
                     <x-form.group.select name="server_id" label="Server" :options="[]" required :value="@$user['server_id']"
                         :readonly="$mode == 'edit'" />
 
-                    <x-form.group.input name="username" label="Username" required readonly :value="@$user['username'] ?? ''" />
+                    <x-form.group.input name="username" label="Username" required :value="@$user['username'] ?? ''" />
                     <x-form.group.input name="pppoe_password" label="Password" required value="1234"
                         :value="@$user['pppoe_password'] ?? '123456'" />
 
@@ -131,7 +135,7 @@
                 async updateServiceNumber(customerId) {
                     if (!customerId || this.cache.serviceNumbers[customerId]) {
                         $('[name="service_number"]').val(this.cache.serviceNumbers[customerId] || '');
-                        $('[name="username"]').val((this.cache.serviceNumbers[customerId] || '') + '@RLNET.com');
+                        $('[name="username"]').val((this.cache.serviceNumbers[customerId] || '') + '@netplus.id');
                         return;
                     }
 
@@ -140,7 +144,7 @@
                         "serviceNumbers", customerId);
 
                     $('[name="service_number"]').val(data);
-                    $('[name="username"]').val(data + '@RLNET.com');
+                    $('[name="username"]').val(data + '@netplus.id');
                 },
 
                 async updateExpiredAt() {
@@ -194,7 +198,7 @@
 
                     // Auto-update username when service_number changes
                     $('[name="service_number"]').on('change', (e) => {
-                        $('[name="username"]').val(e.target.value + '@RLNET.com');
+                        $('[name="username"]').val(e.target.value + '@netplus.id');
                     });
 
                     //init service number if customer_id is set

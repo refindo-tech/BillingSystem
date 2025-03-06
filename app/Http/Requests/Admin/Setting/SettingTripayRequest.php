@@ -26,6 +26,7 @@ class SettingTripayRequest extends FormRequest
             'tripay_private_key'=> 'required|string',
             'tripay_merchant_code'=> 'required|string',
             'tripay_channels' => 'nullable|array',
+            'tripay_environtment' => 'required|string|in:sandbox,production',
         ];
     }
 }
