@@ -23,6 +23,7 @@ use App\Support\Facades\Tripay;
 use App\Models\Customer;
 use App\Models\KeyWhatsapp;
 use App\Models\Transaction;
+use App\Models\UserRecharge;
 use App\Models\WhatsappMessage;
 use App\Models\WhatsAppTemplate;
 use App\Support\Package;
@@ -195,6 +196,8 @@ class CustomerOrderController extends Controller
                 // Generate pesan otomatis
                 $message = $this->generatePaymentMessage($order, $customer);
 
+                // dd($message, $customer, $order);
+
                 $messageSchedule = $this->generateBillingMessage($order, $customer);
 
                 if (!empty($customer->phonenumber) && $message) {
@@ -235,15 +238,16 @@ class CustomerOrderController extends Controller
         // Ambil template pesan dari database berdasarkan tipe 'Pembayaran'
         $template = WhatsAppTemplate::where('type', 'invoice')->first();
         $invoice = Transaction::where('username', $customer->username)->latest('id')->first();
+        $userRecharge = UserRecharge::where('id', $order->user_recharge_id)->first();
         if (!$template) return null;
 
         // Data pengganti untuk template
         $replacements = [
             '#INVOICE#'              => $invoice->invoice, // Sesuaikan dengan ID invoice
-            '#NOLAYANAN#'            => $order->service_number ?? '-', // Jika ada nomor layanan
+            '#NOLAYANAN#'            => $userRecharge->service_number ?? '-', // Jika ada nomor layanan
             '#NAMAPELANGGAN#'        => $customer->fullname,
             '#CHANNEL#'              => strtoupper($order->payment_channel), // XENDIT, TRIPAY, dll.
-            '#TGLBAYAR#'             => $order->paid_date->format('d-m-Y H:i'),
+            '#TGLBAYAR#'             => Carbon::parse($order->paid_date)->translatedFormat('j F Y'),
             '#SUBTOTAL#'             => number_format($order->price, 0, ',', '.'),
             '#DISKON#'               => number_format(0, 0, ',', '.'), // Sesuaikan jika ada diskon
             '#KODEUNIK#'             => number_format(0, 0, ',', '.'), // Sesuaikan jika ada kode unik

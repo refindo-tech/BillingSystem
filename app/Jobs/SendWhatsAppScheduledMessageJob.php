@@ -28,7 +28,7 @@ class SendWhatsAppScheduledMessageJob implements ShouldQueue
         $this->message = $message;
         $this->tokenDevice = $tokenDevice;
         // Konversi expired_at ke Carbon dan kurangi 7 hari
-        $this->schedule = Carbon::parse($schedule)->subDays(7)->timestamp;
+        $this->schedule = Carbon::parse($schedule)->timestamp;
     }
 
     /**
