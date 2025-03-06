@@ -50,8 +50,9 @@ class AdminWhatsappController extends Controller
         $templatePenagihan = WhatsAppTemplate::where('type', 'penagihan')->first();
         $templateNewTiket = WhatsAppTemplate::where('type', 'opentiket')->first();
         $templateClosedTiket = WhatsAppTemplate::where('type', 'closedtiket')->first();
+        $templateUserRegis = WhatsAppTemplate::where('type', 'userregis')->first();
 
-        return view('admin.setting.whatsapp.template', compact('templateLayananBaru', 'templateInvoice', 'templateIsolir', 'templatePenagihan', 'templateNewTiket', 'templateClosedTiket'));
+        return view('admin.setting.whatsapp.template', compact('templateLayananBaru', 'templateInvoice', 'templateIsolir', 'templatePenagihan', 'templateNewTiket', 'templateClosedTiket', 'templateUserRegis'));
     }
 
     public function storeTemplate(Request $request)
@@ -188,15 +189,16 @@ class AdminWhatsappController extends Controller
 
             case 'aktif':
                 $customers = UserRecharge::where('status', 'on')->with('customer')->get();
+                // dd($customers);
 
                 if ($customers->isEmpty()) {
                     return back()->with('error', 'Tidak ada pelanggan aktif.');
                 }
 
-                foreach ($customers as $customer) {
-                    SendWhatsAppMessageJob::dispatch($customer->phonenumber, $request->pesan, $tokenDevice);
+                foreach ($customers as $item) {
+                    SendWhatsAppMessageJob::dispatch($item->customer->phonenumber, $request->pesan, $tokenDevice);
                     $messages[] = [
-                        'phone' => $customer->phonenumber,
+                        'phone' => $item->customer->phonenumber,
                         'message' => $request->pesan,
                         'date' => now(),
                         'status' => 'sent',
@@ -349,11 +351,9 @@ class AdminWhatsappController extends Controller
     public function sendIsolateNotification(Request $request)
     {
         try {
-            $customers = UserRecharge::with('customer')
+            $customers = UserRecharge::with('customer')->where('status', 'off')
                 ->whereDate('expired_at', '<', now()->toDateString())
                 ->get();
-
-            // dd($customers,now()->toDateString());
 
             if ($customers->isEmpty()) {
                 return back()->with('error', 'Tidak ada pelanggan yang diisolir.');
@@ -370,8 +370,8 @@ class AdminWhatsappController extends Controller
                         'periode'             => Carbon::now()->locale('id')->translatedFormat('F Y'),
                         'total'               => $transaction->price,
                         'jatuh_tempo'         => Carbon::parse($item->expired_at)->locale('id')->translatedFormat('d F Y'),
-                        'via_transfer_bank'   => "BCA: 1234567890 a.n PT. Contoh",
-                        'via_payment_gateway' => "GoPay, ShopeePay, dll.",
+                        'via_transfer_bank'   => "Via Transfer Bank: BNI, BCA, Mandiri, BTN, BSI, Permata Bank",
+                        'via_payment_gateway' => "Via Dana virtual: GoPay, ShopeePay, Dana, OVO",
                     ];
 
                     $message = $this->generateIsolirMessage($item, $billingData);

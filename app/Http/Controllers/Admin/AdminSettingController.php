@@ -84,10 +84,8 @@ class AdminSettingController extends Controller
             'xendit_channels' => Config::get('xendit_channels') ? explode(',', Config::get('xendit_channels')) : [],
         ];
 
-        // whatsapp
-        $keyWhatsapp = KeyWhatsapp::first();
 
-        return view('admin.setting.payment-gateway', compact('tripayChannels', 'xenditChannels', 'tripay', 'xendit', 'activeGateway', 'keyWhatsapp'));
+        return view('admin.setting.payment-gateway', compact('tripayChannels', 'xenditChannels', 'tripay', 'xendit', 'activeGateway'));
     }
 
     public function setActiveGateway(Request $request)
@@ -101,7 +99,15 @@ class AdminSettingController extends Controller
         return redirect()->back()->with('success', ucfirst($request->gateway) . ' has been set as the active payment gateway');
     }
 
-    public function whatsappGateway(Request $request)
+    public function whatsappGateway()
+    {
+        
+        // whatsapp
+        $keyWhatsapp = KeyWhatsapp::first();
+        return view('admin.setting.whatsapp-gateaway', compact('keyWhatsapp'));
+    }
+
+    public function whatsappGatewayStore(Request $request)
     {
         $validator = Validator::make($request->all(), ([
             'fonnte_key_device' => 'required|string',
@@ -132,7 +138,7 @@ class AdminSettingController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'WhatsApp Gateway successfully updated and connected to Fonte!');
+        return redirect()->back()->with('success', 'WhatsApp Gateway successfully updated and connected to Fonnte!');
     }
 
     public function checkWhatsappStatus()
@@ -152,44 +158,6 @@ class AdminSettingController extends Controller
             return back()->with('error', 'Gagal mendapatkan status perangkat.');
         }
     }
-
-    // public function connectWhatsapp()
-    // {
-    //     $keyWhatsapp = KeyWhatsapp::first();
-
-    //     if (!$keyWhatsapp) {
-    //         return back()->with('error', 'Belum ada API Key yang disimpan.');
-    //     }
-
-    //     $response = $keyWhatsapp->connectDevice();
-
-    //     if ($response['status'] === true) {
-    //         $keyWhatsapp->update(['status' => 'connected']);
-    //         return back()->with('success', 'Perangkat berhasil dikoneksikan.');
-    //     } else {
-    //         return back()->with('error', 'Gagal menghubungkan perangkat: ' . ($response['detail'] ?? 'Terjadi kesalahan.'));
-    //     }
-    // }
-
-    // public function disconnectWhatsapp()
-    // {
-    //     $keyWhatsapp = KeyWhatsapp::first();
-
-    //     if (!$keyWhatsapp) {
-    //         return back()->with('error', 'Belum ada API Key yang disimpan.');
-    //     }
-
-    //     $response = $keyWhatsapp->disconnectDevice();
-
-    //     if ($response['status'] === true) {
-    //         $keyWhatsapp->update(['status' => 'disconnected']);
-    //         return back()->with('success', 'Perangkat berhasil diputuskan.');
-    //     } else {
-    //         return back()->with('error', 'Gagal memutuskan perangkat: ' . ($response['detail'] ?? 'Terjadi kesalahan.'));
-    //     }
-    // }
-
-
 
     public function general()
     {

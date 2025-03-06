@@ -9,9 +9,13 @@ use App\Enum\PlanType;
 use App\Enum\ServiceType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminCustomerRequest;
+use App\Jobs\SendWhatsAppMessageJob;
 use App\Models\Customer;
+use App\Models\KeyWhatsapp;
+use App\Models\WhatsAppTemplate;
 use App\Support\Facades\Log;
 use App\Support\Mikrotik;
+use Carbon\Carbon;
 use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -85,10 +89,36 @@ class AdminCustomerController extends Controller
             $customerData['ktp'] = $ktpFilePath; // Save the file path in database
         }
 
-        Customer::create($customerData);
+        $customer = Customer::create($customerData);
         Log::put('Create customer ' . $request->username, auth()->user());
 
+        // Generate pesan WhatsApp
+        // dd($customer);
+        $message = $this->generateRechargeMessage($customer);
+        $tokenDevice = KeyWhatsapp::first()->key_device;
+        SendWhatsAppMessageJob::dispatch($customer->phonenumber, $message, $tokenDevice);
+
         return redirect(route('admin:customer.index'))->with('success', __('success.created'));
+    }
+
+    private function generateRechargeMessage(Customer $customer)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Registrasi' atau 'Isi Ulang'
+        $template = WhatsAppTemplate::where('type', 'userregis')->first();
+
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NAMAPELANGGAN#' => $customer->fullname,
+            '#ALAMATPASANG#'  => $customer->address,
+            '#USERNAME#'         => $customer->username,
+            '#PASSWORD#'      => $customer->password,
+            '#URL#'           => route('login'), // Contoh link ke profil pelanggan
+        ];
+
+        // Mengganti placeholder dengan nilai dari pelanggan
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
 
     public function update(Customer $customer, AdminCustomerRequest $request)
@@ -136,7 +166,4 @@ class AdminCustomerController extends Controller
 
         return redirect()->back()->with('success', __('Success deactivate customer to Mikrotik'));
     }
-
-    
-
 }

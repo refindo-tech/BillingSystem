@@ -164,6 +164,12 @@ return [
             'middleware' => 'admin',
             'items' => [
                 [
+                    'name' => 'whatsapp.index',
+                    'title' => 'WhatsApp Messages',
+                    'icon' => 'whatsapp',
+                    'url' => '/admin/whatsapp-messages',
+                ],
+                [
                     'name' => 'report',
                     'title' => 'Reports',
                     'icon' => 'notepad',
@@ -243,9 +249,9 @@ return [
                             'icon' => 'two-credit-cart',
                         ],
                         [
-                            'name' => 'setting.whatsapp.index',
-                            'title' => 'Whatsapp',
-                            'url' => '/admin/setting/whatsapp',
+                            'name' => 'setting.whatsapp-gateway',
+                            'title' => 'Whatsapp Gateaway',
+                            'url' => '/admin/setting/whatsapp-gateway',
                             'icon' => 'whatsapp',
                         ],
                         [

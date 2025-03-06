@@ -7,6 +7,7 @@ use App\Enum\PaymentGatewayStatus;
 use App\Exceptions\AppException;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendWhatsAppMessageJob;
+use App\Jobs\SendWhatsAppScheduledMessageJob;
 use App\Models\PaymentGateway;
 use App\Models\Plan;
 use App\Models\Router;
@@ -15,8 +16,10 @@ use App\Support\Facades\Xendit;
 use App\Support\Facades\Tripay;
 use App\Models\Customer;
 use App\Models\KeyWhatsapp;
+use App\Models\Transaction;
 use App\Models\WhatsappMessage;
 use App\Models\WhatsAppTemplate;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class CustomerOrderController extends Controller
@@ -123,6 +126,8 @@ class CustomerOrderController extends Controller
                 // Generate pesan otomatis
                 $message = $this->generatePaymentMessage($order, $customer);
 
+                $messageSchedule = $this->generateBillingMessage($order, $customer);
+
                 if (!empty($customer->phonenumber) && $message) {
                     $tokenDevice = KeyWhatsapp::first()->key_device;
 
@@ -135,6 +140,17 @@ class CustomerOrderController extends Controller
                         'message' => $message,
                         'date'    => now(),
                         'status'  => 'sent',
+                    ]);
+
+                    
+                    $invoice = Transaction::where('username', $customer->username)->latest('id')->first();
+                    $expiredAt = $invoice->expired_at;
+                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $messageSchedule,
+                        'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
+                        'status'  => 'scheduled',
                     ]);
                 }
             }
@@ -149,12 +165,13 @@ class CustomerOrderController extends Controller
     {
         // Ambil template pesan dari database berdasarkan tipe 'Pembayaran'
         $template = WhatsAppTemplate::where('type', 'invoice')->first();
+        $invoice = Transaction::where('username', $customer->username)->latest('id')->first();
         if (!$template) return null;
 
         // Data pengganti untuk template
         $replacements = [
-            '#INVOICE#'              => $order->id, // Sesuaikan dengan ID invoice
-            '#NOLAYANAN#'            => $order->router_id ?? '-', // Jika ada nomor layanan
+            '#INVOICE#'              => $invoice->invoice, // Sesuaikan dengan ID invoice
+            '#NOLAYANAN#'            => $order->service_number ?? '-', // Jika ada nomor layanan
             '#NAMAPELANGGAN#'        => $customer->fullname,
             '#CHANNEL#'              => strtoupper($order->payment_channel), // XENDIT, TRIPAY, dll.
             '#TGLBAYAR#'             => $order->paid_date->format('d-m-Y H:i'),
@@ -164,10 +181,39 @@ class CustomerOrderController extends Controller
             '#PPN#'                  => number_format(0, 0, ',', '.'), // Sesuaikan jika ada PPN
             '#ADM#'                  => number_format(0, 0, ',', '.'), // Sesuaikan jika ada biaya admin
             '#TOTAL#'                => number_format($order->price, 0, ',', '.'),
-            '#LAYANANAKTIFSAMPAI#'   => optional($order->paid_date)->addMonth()->format('d-m-Y') ?? '-',// Jika layanan aktif 1 bulan
+            '#LAYANANAKTIFSAMPAI#'   => Carbon::parse($invoice->active_at)->translatedFormat('j F Y'),
         ];
 
         // Mengganti placeholder dalam template dengan nilai dari transaksi
+        return str_replace(array_keys($replacements), array_values($replacements), $template->message);
+    }
+
+    private function generateBillingMessage(PaymentGateway $order, $customer)
+    {
+        // Ambil template pesan dari database berdasarkan tipe 'Penagihan'
+        $template = WhatsAppTemplate::where('type', 'Penagihan')->first();
+        $transaction = Transaction::where('username', $customer->username)->latest('id')->first();
+        if (!$template) return null;
+
+        // Data pengganti untuk template
+        $replacements = [
+            '#NOLAYANAN#'       => $transaction->service_number,
+            '#NAMAPELANGGAN#'   => $customer->fullname,
+            '#ALAMATPASANG#'    => $customer->address,
+            '#INVOICE#'         => $transaction->invoice,
+            '#PERIODE#'         => $transaction->periode,
+            '#SUBTOTAL#'        => number_format($transaction->price, 0, ',', '.'),
+            '#DISKON#'          => number_format($transaction->diskon, 0, ',', '.'),
+            '#KODEUNIK#'        => $transaction->kode_unik,
+            '#PPN#'             => number_format($transaction->ppn, 0, ',', '.'),
+            '#ADM#'             => number_format($transaction->adm, 0, ',', '.'),
+            '#TOTAL#'           => number_format($transaction->price, 0, ',', '.'),
+            '#JATUHTEMPO#'      => $transaction->expired_at,
+            '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
+            '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
+        ];
+
+        // Mengganti placeholder dengan nilai dari pelanggan
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
 

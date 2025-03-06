@@ -151,7 +151,7 @@ class AdminPrepaidController extends Controller
             $messageSchedule = $this->generateBillingMessage($customer, $plan, $request);
             $expiredAt = $request->expired_at;
 
-            dd($message, $messageSchedule, $expiredAt);
+            // dd($message, $messageSchedule, $expiredAt);
 
             // Kirim pesan WhatsApp jika nomor HP tersedia
             if (!empty($customer->phonenumber) && $message) {
