@@ -22,13 +22,13 @@ class SendWhatsAppScheduledMessageJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct($phone, $message, $tokenDevice, $schedule, $expiredAt)
+    public function __construct($phone, $message, $tokenDevice, $schedule)
     {
         $this->phone = $phone;
         $this->message = $message;
         $this->tokenDevice = $tokenDevice;
         // Konversi expired_at ke Carbon dan kurangi 7 hari
-        $this->schedule = Carbon::parse($expiredAt)->subDays(7)->timestamp;
+        $this->schedule = Carbon::parse($schedule)->subDays(7)->timestamp;
     }
 
     /**

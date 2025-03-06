@@ -1,4 +1,4 @@
-<x-admin-layout title="Whatsapp Gateway" active-menu="setting.whatsapp.index" :path="['Whatsapp Contact' => '']">
+<x-admin-layout title="Whatsapp Messages" active-menu="whatsapp.index" :path="['Whatsapp Contact' => '']">
     <div class="app-container container-xxl">
         <div class="card">
             <div class="card-body">
@@ -14,7 +14,7 @@
                     <button id="clear-history" class="btn btn-warning w-100 w-sm-auto">
                         <i class="bi bi-brush"></i> Kosongkan
                     </button>
-                    <a href="{{ route('admin:setting.whatsapp.template.index') }}" class="btn btn-info w-100 w-sm-auto">
+                    <a href="{{ route('admin:whatsapp.template.index') }}" class="btn btn-info w-100 w-sm-auto">
                         <i class="bi bi-gear"></i> Setting
                     </a>
                     <button id="broadcast-message" class="btn btn-secondary w-100 w-sm-auto" data-bs-toggle="modal"
@@ -25,13 +25,13 @@
                         data-bs-target="#modalSendMessage">
                         <i class="bi bi-chevron-right"></i> Kirim Pesan
                     </button>
-                    <form id="billing-notif-form" action="{{ route('admin:setting.whatsapp.billing') }}" method="POST">
+                    <form id="billing-notif-form" action="{{ route('admin:whatsapp.billing') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-primary w-100 w-sm-auto">
                             <i class="bi bi-info-circle-fill"></i> Notif Penagihan
                         </button>
                     </form>
-                    <form id="billing-notif-isolate" action="{{ route('admin:setting.whatsapp.isolate') }}"
+                    <form id="billing-notif-isolate" action="{{ route('admin:whatsapp.isolate') }}"
                         method="POST">
                         @csrf
                         <button type="submit" class="btn btn-danger w-100 w-sm-auto">
@@ -123,7 +123,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-batal" data-bs-dismiss="modal">Batal</button>
-                    <form id="delete-form" action="{{ route('admin:setting.whatsapp.delete') }}" method="POST">
+                    <form id="delete-form" action="{{ route('admin:whatsapp.delete') }}" method="POST">
                         @csrf
                         <input type="hidden" name="ids" id="selected-ids">
                         <button type="submit" id="confirm-delete-button" class="btn btn-danger">Hapus
@@ -136,7 +136,7 @@
 
 
     <!-- Modal Blast -->
-    <form action="{{ route('admin:setting.whatsapp.blast') }}" method="POST">
+    <form action="{{ route('admin:whatsapp.blast') }}" method="POST">
         @csrf
         <div class="modal fade" id="modalBlast" tabindex="-1" aria-labelledby="modalBlastLabel"
             aria-hidden="true">
@@ -232,7 +232,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('admin:setting.whatsapp.send') }}" method="POST">
+                    <form action="{{ route('admin:whatsapp.send') }}" method="POST">
                         @csrf
                         <div class="box-body">
                             <div class="form-group">
@@ -399,7 +399,7 @@
 
                     // Kirim data ke controller menggunakan AJAX
                     $.ajax({
-                        url: '/admin/setting/whatsapp/resend', // Pastikan route ini benar
+                        url: '/admin/whatsapp/resend', // Pastikan route ini benar
                         method: 'POST',
                         data: {
                             _token: '{{ csrf_token() }}',
@@ -443,7 +443,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: "/admin/setting/whatsapp/clear", // Sesuaikan dengan route yang dipakai
+                                url: "/admin/whatsapp/clear", // Sesuaikan dengan route yang dipakai
                                 type: "POST",
                                 data: {
                                     _token: "{{ csrf_token() }}"
@@ -498,7 +498,7 @@
                     var pesan = $("#notifTextarea").val();
 
                     $.ajax({
-                        url: "{{ route('admin:setting.whatsapp.blast') }}",
+                        url: "{{ route('admin:whatsapp.blast') }}",
                         type: "POST",
                         data: {
                             _token: "{{ csrf_token() }}",

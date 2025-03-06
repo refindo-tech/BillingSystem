@@ -1,7 +1,7 @@
-<x-admin-layout title="Template Whatsapp" active-menu="setting.whatsapp.index" :path="['Whatsapp Contact' => '']">
+<x-admin-layout title="Template Whatsapp" active-menu="whatsapp.index" :path="['Whatsapp Contact' => '']">
     <div class="app-container container-xxl">
         <div class="d-flex justify-content-end mb-3">
-            <a href="{{ route('admin:setting.whatsapp.index') }}" class="btn btn-primary">
+            <a href="{{ route('admin:whatsapp.index') }}" class="btn btn-primary">
                 Kembali
             </a>
         </div>
@@ -23,7 +23,7 @@
                         </p>
                     </div>
                     <form method="POST" enctype="multipart/form-data"
-                        action="{{ route('admin:setting.whatsapp.template.store') }}">
+                        action="{{ route('admin:whatsapp.template.store') }}">
                         @csrf
                         <input type="hidden" name="type" id="type" value="layanan_baru">
                         <div class="box-body">
@@ -50,7 +50,7 @@
                         </p>
                     </div>
                     <form method="POST" enctype="multipart/form-data"
-                        action="{{ route('admin:setting.whatsapp.template.store') }}">
+                        action="{{ route('admin:whatsapp.template.store') }}">
                         @csrf
                         <div class="box-body">
                             <input type="hidden" name="type" value="invoice">
@@ -75,7 +75,7 @@
                         </p>
                     </div>
                     <form method="POST" enctype="multipart/form-data"
-                        action="{{ route('admin:setting.whatsapp.template.store') }}">
+                        action="{{ route('admin:whatsapp.template.store') }}">
                         @csrf
                         <div class="box-body">
                             <input type="hidden" name="type" value="opentiket">
@@ -83,6 +83,30 @@
                                 <label for="notifTextarea">Isi Pesan Notifikasi Pembuatan Tiket</label>
                                 <textarea class="form-control" id="notifTextarea" name="pesan_notifikasi" rows="9"
                                     placeholder="Contoh: Tiket Anda sedang dalam pengerjaan. Silahkan tunggu.">{{ old('pesan_notifikasi', $templateNewTiket->message ?? '') }}</textarea>
+                            </div>
+                        </div>
+                        <div class="box-footer mt-5">
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="box box-primary mt-5">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Notifikasi Registrasi Pengguna Baru</h3>
+                        <p class="alert alert-primary">
+                            <strong>Format Variable :<br>#NAMAPELANGGAN# #ALAMATPASANG# #USERNAME# #PASSWORD# #URL#</strong>
+                        </p>
+                    </div>
+                    <form method="POST" enctype="multipart/form-data"
+                        action="{{ route('admin:whatsapp.template.store') }}">
+                        @csrf
+                        <div class="box-body">
+                            <input type="hidden" name="type" value="userregis">
+                            <div class="form-group">
+                                <label for="notifTextarea">Isi Pesan Notifikasi Pembuatan Tiket</label>
+                                <textarea class="form-control" id="notifTextarea" name="pesan_notifikasi" rows="9"
+                                    placeholder="Contoh: Tiket Anda sedang dalam pengerjaan. Silahkan tunggu.">{{ old('pesan_notifikasi', $templateUserRegis->message ?? '') }}</textarea>
                             </div>
                         </div>
                         <div class="box-footer mt-5">
@@ -103,7 +127,7 @@
                         </p>
                     </div>
                     <form method="POST" enctype="multipart/form-data"
-                        action="{{ route('admin:setting.whatsapp.template.store') }}">
+                        action="{{ route('admin:whatsapp.template.store') }}">
                         @csrf
                         <div class="box-body">
                             <input type="hidden" name="type" value="isolir">
@@ -132,7 +156,7 @@
                     <form method="POST" enctype="multipart/form-data">
                         <div class="box-body">
                             <input type="hidden" name="type" value="Penagihan"
-                                action="{{ route('admin:setting.whatsapp.template.store') }}">
+                                action="{{ route('admin:whatsapp.template.store') }}">
                             @csrf
                             <div class="form-group">
                                 <label for="notifTextarea">Isi Pesan Notifikasi Penagihan</label>
@@ -157,7 +181,7 @@
                     <form method="POST" enctype="multipart/form-data">
                         <div class="box-body">
                             <input type="hidden" name="type" value="closedtiket"
-                                action="{{ route('admin:setting.whatsapp.template.store') }}">
+                                action="{{ route('admin:whatsapp.template.store') }}">
                             @csrf
                             <div class="form-group">
                                 <label for="notifTextarea">Isi Pesan Notifikasi Tiket Teratasi</label>

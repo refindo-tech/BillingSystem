@@ -120,28 +120,31 @@ Route::name('admin:')->group(function () {
         Route::get('report/daily', [AdminReportController::class, 'reportDaily'])->name('report.daily');
         Route::get('report/period', [AdminReportController::class, 'reportPeriod'])->name('report.period');
 
+
+        // NOTIFICATION Whatsapp #
+        Route::middleware('admin')->group(function () {
+            // whatsapp message
+            Route::get('whatsapp-messages', [AdminWhatsappController::class, 'index'])->name('whatsapp.index');
+            Route::post('whatsapp/send', [AdminWhatsappController::class, 'sendWhatsAppMessage'])->name('whatsapp.send');
+            Route::post('whatsapp/resend', [AdminWhatsappController::class, 'resendMessages'])->name('whatsapp.resend');
+            Route::post('whatsapp/delete', [AdminWhatsappController::class, 'deleteMessages'])->name('whatsapp.delete');
+            Route::post('whatsapp/clear', [AdminWhatsappController::class, 'clearHistory'])->name('whatsapp.clear');
+            Route::post('whatsapp/blast', [AdminWhatsappController::class, 'blast'])->name('whatsapp.blast');
+            Route::post('whatsapp/billing', [AdminWhatsappController::class, 'sendBillingNotification'])->name('whatsapp.billing');
+            Route::post('whatsapp/isolate', [AdminWhatsappController::class, 'sendIsolateNotification'])->name('whatsapp.isolate');
+            // template whatsapp
+            Route::get('whatsapp/template', [AdminWhatsappController::class, 'template'])->name('whatsapp.template.index');
+            Route::post('whatsapp/template', [AdminWhatsappController::class, 'storeTemplate'])->name('whatsapp.template.store');
+        });
+
         // SETTING #
         Route::middleware('admin')->group(function () {
             Route::get('setting/payment-gateway', [AdminSettingController::class, 'paymentGateway'])->name('setting.payment-gateway');
             Route::put('setting/payment-gateway', [AdminSettingController::class, 'setActiveGateway'])->name('setting.payment-gateway.set-active');
             // whatsapp gateway
-            Route::put('setting/whatsapp-gateway', [AdminSettingController::class, 'whatsappGateway'])->name('setting.whatsapp-gateway');
+            Route::get('setting/whatsapp-gateway', [AdminSettingController::class, 'whatsappGateway'])->name('setting.whatsapp-gateway');
+            Route::put('setting/whatsapp-gateway/store', [AdminSettingController::class, 'whatsappGatewayStore'])->name('setting.whatsapp-gateway.store');
             Route::get('setting/whatsapp-status', [AdminSettingController::class, 'checkWhatsappStatus'])->name('setting.whatsapp.status');
-            Route::post('setting/whatsapp-connect', [AdminSettingController::class, 'connectWhatsapp'])->name('setting.whatsapp.connect');
-            Route::post('setting/whatsapp-disconnect', [AdminSettingController::class, 'disconnectWhatsapp'])->name('setting.whatsapp.disconnect');
-            // whatsapp message
-            Route::get('setting/whatsapp', [AdminWhatsappController::class, 'index'])->name('setting.whatsapp.index');
-            Route::post('setting/whatsapp/send', [AdminWhatsappController::class, 'sendWhatsAppMessage'])->name('setting.whatsapp.send');
-            Route::post('setting/whatsapp/resend', [AdminWhatsappController::class, 'resendMessages'])->name('setting.whatsapp.resend');
-            Route::post('setting/whatsapp/delete', [AdminWhatsappController::class, 'deleteMessages'])->name('setting.whatsapp.delete');
-            Route::post('setting/whatsapp/clear', [AdminWhatsappController::class, 'clearHistory'])->name('setting.whatsapp.clear');
-            Route::post('setting/whatsapp/blast', [AdminWhatsappController::class, 'blast'])->name('setting.whatsapp.blast');
-            Route::post('setting/whatsapp/billing', [AdminWhatsappController::class, 'sendBillingNotification'])->name('setting.whatsapp.billing');
-            Route::post('setting/whatsapp/isolate', [AdminWhatsappController::class, 'sendIsolateNotification'])->name('setting.whatsapp.isolate');
-            // template whatsapp
-            Route::get('setting/whatsapp/template', [AdminWhatsappController::class, 'template'])->name('setting.whatsapp.template.index');
-            Route::post('setting/whatsapp/template', [AdminWhatsappController::class, 'storeTemplate'])->name('setting.whatsapp.template.store');
-
             // xendit
             Route::get('setting/xendit', [AdminSettingController::class, 'xendit'])->name('setting.xendit');
             Route::put('setting/xendit', [AdminSettingController::class, 'updateXendit'])->name('setting.xendit.update');
