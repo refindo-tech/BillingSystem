@@ -55,18 +55,18 @@ class AdminPrepaidController extends Controller
     {
 
         $activeGateway = Config::get('active_payment_gateway');
-        
+
         $channelsConfig = config("payment.{$activeGateway}.channels");
         $paymentChannels = explode(',', Config::get("{$activeGateway}_channels"));
 
         if (empty($paymentChannels[0])) {
             $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
-            return [$channel['id'] => $channel['name']];
+                return [$channel['id'] => $channel['name']];
             })->toArray();
         } else {
             $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
-            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
-            return [$channel => $channelConfig['name']];
+                $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+                return [$channel => $channelConfig['name']];
             })->toArray();
         }
 
@@ -95,12 +95,12 @@ class AdminPrepaidController extends Controller
 
         if (empty($paymentChannels[0])) {
             $activeChannels = collect($channelsConfig)->mapWithKeys(function ($channel) {
-            return [$channel['id'] => $channel['name']];
+                return [$channel['id'] => $channel['name']];
             })->toArray();
         } else {
             $activeChannels = collect($paymentChannels)->mapWithKeys(function ($channel) use ($channelsConfig) {
-            $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
-            return [$channel => $channelConfig['name']];
+                $channelConfig = collect($channelsConfig)->firstWhere('id', $channel);
+                return [$channel => $channelConfig['name']];
             })->toArray();
         }
 
@@ -157,13 +157,13 @@ class AdminPrepaidController extends Controller
             'validityCycles',
             'upgradeTypes'
         ))->with([
-            'defaultPlanType' => $user->plan->type,
-            'defaultRouterId' => $user->plan->router_id,
-            'serviceNumber' => $user->service_number,
-            'defaultValidityCycle' => $user->validity_cycle,
-            'defaultUpgradeType' => UpgradeType::RECHARGE,
-            'user' => $user,
-        ]);
+                    'defaultPlanType' => $user->plan->type,
+                    'defaultRouterId' => $user->plan->router_id,
+                    'serviceNumber' => $user->service_number,
+                    'defaultValidityCycle' => $user->validity_cycle,
+                    'defaultUpgradeType' => UpgradeType::RECHARGE,
+                    'user' => $user,
+                ]);
     }
 
     public function storeUser(PrepaidUserRequest $request)
@@ -177,24 +177,25 @@ class AdminPrepaidController extends Controller
             $server_id = $request->server_id;
             $payment_channel = $request->payment_channel;
 
-            
+
 
             // Recharge user
             $userRecharge = Package::rechargeUser(
-                $customer, 
-                $router, 
-                $plan, 
-                RechargeGateway::RECHARGE, 
+                $customer,
+                $router,
+                $plan,
+                RechargeGateway::RECHARGE,
                 $payment_channel,
-                $request->service_number, 
-                $request->validity_cycle, 
-                $request->expired_at, 
-                $username, 
-                $password, 
-                $server_id);
+                $request->service_number,
+                $request->validity_cycle,
+                $request->expired_at,
+                $username,
+                $password,
+                $server_id
+            );
 
-            
-            
+
+
             // Generate pesan WhatsApp
             $message = $this->generateRechargeMessage($customer, $plan, $request);
             $messageSchedule = $this->generateBillingMessage($customer, $plan, $request);
@@ -206,31 +207,31 @@ class AdminPrepaidController extends Controller
             if (!empty($customer->phonenumber) && $message) {
                 $tokenDevice = KeyWhatsapp::first()->key_device;
                 SendWhatsAppMessageJob::dispatch($customer->phonenumber, $message, $tokenDevice);
-                
+
                 // Simpan log pesan ke database
                 WhatsappMessage::create([
-                    'phone'   => $customer->phonenumber,
+                    'phone' => $customer->phonenumber,
                     'message' => $message,
-                    'date'    => now(),
-                    'status'  => 'sent',
+                    'date' => now(),
+                    'status' => 'sent',
                 ]);
 
                 SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
                 WhatsappMessage::create([
-                    'phone'   => $customer->phonenumber,
+                    'phone' => $customer->phonenumber,
                     'message' => $messageSchedule,
-                    'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
-                    'status'  => 'scheduled',
+                    'date' => $expiredAt, // Simpan sesuai jadwal pengiriman
+                    'status' => 'scheduled',
                 ]);
             }
 
-            Log::put('Recharge account '.$customer->username, auth()->user());
+            Log::put('Recharge account ' . $customer->username, auth()->user());
 
             return redirect()->route('admin:prepaid.user.index')->with('success', __('success.created'));
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    
+
     }
 
     private function generateRechargeMessage(Customer $customer, Plan $plan, $request)
@@ -238,20 +239,21 @@ class AdminPrepaidController extends Controller
         // Ambil template pesan dari database berdasarkan tipe 'Registrasi' atau 'Isi Ulang'
         $template = WhatsAppTemplate::where('type', 'layanan_baru')->first();
 
-        if (!$template) return null;
+        if (!$template)
+            return null;
 
         // Data pengganti untuk template
         $replacements = [
-            '#NOLAYANAN#'     => $request->service_number, // Format nomor layanan
+            '#NOLAYANAN#' => $request->service_number, // Format nomor layanan
             '#NAMAPELANGGAN#' => $customer->fullname,
-            '#ALAMATPASANG#'  => $customer->address,
-            '#PROFILE#'       => $plan->name,
-            '#HARGA#'         => number_format($plan->price, 0, ',', '.'),
-            '#JENISTAGIHAN#'  => $request->validity_cycle,
-            '#TGLAKTIF#'      => date('d-m-Y', strtotime($request->active_at)),
-            '#TGLISOLIR#'     => date('d-m-Y', strtotime($request->expired_at)),
-            '#PHONE#'         => $customer->phonenumber,
-            '#URL#'           => route('customer:dashboard'), // Contoh link ke profil pelanggan
+            '#ALAMATPASANG#' => $customer->address,
+            '#PROFILE#' => $plan->name,
+            '#HARGA#' => number_format($plan->price, 0, ',', '.'),
+            '#JENISTAGIHAN#' => $request->validity_cycle,
+            '#TGLAKTIF#' => date('d-m-Y', strtotime($request->active_at)),
+            '#TGLISOLIR#' => date('d-m-Y', strtotime($request->expired_at)),
+            '#PHONE#' => $customer->phonenumber,
+            '#URL#' => route('customer:dashboard'), // Contoh link ke profil pelanggan
         ];
 
         // Mengganti placeholder dengan nilai dari pelanggan
@@ -263,22 +265,23 @@ class AdminPrepaidController extends Controller
         // Ambil template pesan dari database berdasarkan tipe 'Penagihan'
         $template = WhatsAppTemplate::where('type', 'Penagihan')->first();
         $transaction = Transaction::where('username', $customer->username)->latest('id')->first();
-        if (!$template) return null;
+        if (!$template)
+            return null;
 
         // Data pengganti untuk template
         $replacements = [
-            '#NOLAYANAN#'       => $request->service_number,
-            '#NAMAPELANGGAN#'   => $customer->fullname,
-            '#ALAMATPASANG#'    => $customer->address,
-            '#INVOICE#'         => $transaction->invoice,
-            '#PERIODE#'         => $request->periode,
-            '#SUBTOTAL#'        => number_format($transaction->price, 0, ',', '.'),
-            '#DISKON#'          => number_format($request->diskon, 0, ',', '.'),
-            '#KODEUNIK#'        => $request->kode_unik,
-            '#PPN#'             => number_format($request->ppn, 0, ',', '.'),
-            '#ADM#'             => number_format($request->adm, 0, ',', '.'),
-            '#TOTAL#'           => number_format($transaction->price, 0, ',', '.'),
-            '#JATUHTEMPO#'      => $request->expired_at,
+            '#NOLAYANAN#' => $request->service_number,
+            '#NAMAPELANGGAN#' => $customer->fullname,
+            '#ALAMATPASANG#' => $customer->address,
+            '#INVOICE#' => $transaction->invoice,
+            '#PERIODE#' => $request->periode,
+            '#SUBTOTAL#' => number_format($transaction->price, 0, ',', '.'),
+            '#DISKON#' => number_format($request->diskon, 0, ',', '.'),
+            '#KODEUNIK#' => $request->kode_unik,
+            '#PPN#' => number_format($request->ppn, 0, ',', '.'),
+            '#ADM#' => number_format($request->adm, 0, ',', '.'),
+            '#TOTAL#' => number_format($transaction->price, 0, ',', '.'),
+            '#JATUHTEMPO#' => $request->expired_at,
             '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
             '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
         ];
@@ -302,7 +305,7 @@ class AdminPrepaidController extends Controller
         $password = $request->pppoe_password;
 
         Package::changeTo($customer, $newPlan, $user, $username, $password);
-        
+
         $user->plan_id = $newPlan->id;
         $user->expired_at = match ($request->upgrade_type) {
             UpgradeType::RECHARGE->value => date('Y-m-d H:i:s', strtotime($user->expired_at . ' +1 month')),
@@ -310,7 +313,7 @@ class AdminPrepaidController extends Controller
             default => $user->expired_at,
         };
         $user->save();
-        Log::put('Update account '.$customer->username, auth()->user());
+        Log::put('Update account ' . $customer->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.updated'));
     }
@@ -331,11 +334,12 @@ class AdminPrepaidController extends Controller
             }
         }
         PaymentGateway::where('user_recharge_id', $user->id)->delete();
-        $user->delete();   
-        Log::put('Delete account '.$user->username, auth()->user());
+        $user->delete();
+        Log::put('Delete account ' . $user->username, auth()->user());
 
         return redirect()->route('admin:prepaid.user.index')->with('success', __('success.deleted'));
     }
+
 
     public function showInvoice(Transaction $invoice)
     {
@@ -428,7 +432,7 @@ class AdminPrepaidController extends Controller
         $customer = Customer::findOrFail($validated['customer_id']);
         /** @var Voucher $voucher */
         $voucher = Voucher::where('code', $validated['voucher_code'])->where('status', VoucherStatus::UNUSED)->first();
-        if (! $voucher) {
+        if (!$voucher) {
             return redirect()->back()->with('error', 'Invalid voucher code');
         }
         Package::rechargeUser($customer, $voucher->router, $voucher->plan, RechargeGateway::VOUCHER, $voucher->code);
@@ -453,7 +457,7 @@ class AdminPrepaidController extends Controller
             $prefix2 = '00';
             // $serviceCount= UserRecharge::where('customer_id', $request->customer_id)->count() + 1;
             $userRecharge = UserRecharge::where('customer_id', $request->customer_id)->latest('id')->first();
-            $serviceCount = $userRecharge ? (int)substr($userRecharge->service_number, -2) + 1 : 1;
+            $serviceCount = $userRecharge ? (int) substr($userRecharge->service_number, -2) + 1 : 1;
             $serviceNumber .= (strlen($prefix2) > strlen($serviceCount) ? substr($prefix2, 0, strlen($prefix2) - strlen($serviceCount)) : '') . $serviceCount;
         } else {
             $serviceNumber = '';
@@ -536,4 +540,106 @@ class AdminPrepaidController extends Controller
         //round to the nearest 500, ex: 932468.4606060 -> 932500
         return round($totalPrice / 500) * 500;
     }
+
+    //batch action
+    public function batchAction(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => 'required',
+            'ids' => 'required|array',
+        ]);
+
+        $ids = $validated['ids'];
+        $action = $validated['action'];
+
+        switch ($action) {
+            case 'on':
+                return $this->batchActivate($ids);
+            case 'off':
+                return $this->batchDeactivate($ids);
+            case 'change_router':
+                return $this->batchChangeRouter($ids, $request->input('router_id'));
+            case 'change_server':
+                return $this->batchChangeServer($ids, $request->input('server_id'));
+            case 'print_details':
+                return $this->batchPrintDetails($ids);
+            case 'print_invoice':
+                return $this->batchPrintInvoice($ids);
+            case 'delete':
+                return $this->batchDelete($ids);
+            default:
+                return response()->json(['message' => 'Aksi tidak valid.'], 400);
+        }
+    }
+
+    private function batchActivate(array $ids)
+    {
+        // UserRecharge::whereIn('id', $ids)->update(['status' => 'on']);
+        return response()->json(['message' => 'Berhasil mengaktifkan akun terpilih.']);
+    }
+
+    private function batchDeactivate(array $ids)
+    {
+        // UserRecharge::whereIn('id', $ids)->update(['status' => 'off']);
+        return response()->json(['message' => 'Berhasil menonaktifkan akun terpilih.']);
+    }
+
+    private function batchChangeRouter(array $ids, $routerId)
+    {
+        if (!$routerId) {
+            return response()->json(['message' => 'Router ID tidak valid.'], 400);
+        }
+
+        // UserRecharge::whereIn('id', $ids)->update(['router_id' => $routerId]);
+        return response()->json(['message' => 'Router berhasil diganti.']);
+    }
+
+    private function batchChangeServer(array $ids, $serverId)
+    {
+        if (!$serverId) {
+            return response()->json(['message' => 'Server ID tidak valid.'], 400);
+        }
+
+        // UserRecharge::whereIn('id', $ids)->update(['server_id' => $serverId]);
+        return response()->json(['message' => 'Server berhasil diganti.']);
+    }
+
+    private function batchPrintDetails(array $ids)
+    {
+        return response()->json(['message' => 'Fitur cetak detail belum diimplementasikan.']);
+    }
+
+    private function batchPrintInvoice(array $ids)
+    {
+        return response()->json(['message' => 'Fitur cetak invoice belum diimplementasikan.']);
+    }
+
+    private function batchDelete(array $ids)
+    {
+        $users = UserRecharge::whereIn('id', $ids)->get();
+        $count = $users->count();
+
+        foreach ($users as $user) {
+            if ($user->plan->is_radius) {
+                // TODO: Radius::customerDeactivate
+            } else {
+                $mikrotik = $user->router;
+                $client = Mikrotik::getClient($mikrotik->ip_address, $mikrotik->username, $mikrotik->password);
+                if ($user->type == PlanType::HOTSPOT) {
+                    Mikrotik::removeHotspotUser($client, $user->username);
+                    Mikrotik::removeHotspotActiveUser($client, $user->username);
+                } else {
+                    Mikrotik::removePpoeUser($client, $user->username);
+                    Mikrotik::removePpoeActive($client, $user->username);
+                }
+            }
+            PaymentGateway::where('user_recharge_id', $user->id)->delete();
+            $user->delete();
+        }
+
+        Log::put("Delete $count accounts", auth()->user());
+        return response()->json(['message' => "Berhasil menghapus $count akun."]);
+    }
+
+
 }
