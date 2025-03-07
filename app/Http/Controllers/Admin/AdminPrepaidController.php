@@ -220,7 +220,7 @@ class AdminPrepaidController extends Controller
                 ]);
             }
 
-            Log::put('Recharge account ' . $customer->username, ['admin' => auth()->user()]);
+            Log::put('Recharge account '.$customer->username, auth()->user());
 
             return redirect()->route('admin:prepaid.user.index')->with('success', __('success.created'));
         } catch (\Exception $e) {
