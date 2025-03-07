@@ -297,8 +297,8 @@ class AdminWhatsappController extends Controller
                         'adm'                 => 2000,
                         'total'               => $transaction->price,
                         'jatuh_tempo'         => Carbon::parse($item->expired_at)->locale('id')->translatedFormat('d F Y'),
-                        'via_transfer_bank'   => "BCA: 1234567890 a.n PT. Contoh",
-                        'via_payment_gateway' => "GoPay, ShopeePay, dll.",
+                        'via_transfer_bank'   => "Via Transfer Bank: BNI, BCA, Mandiri, BTN, BSI, Permata Bank",
+                        'via_payment_gateway' => "Via Dana virtual: GoPay, ShopeePay, Dana, OVO",
                     ];
 
                     $message = $this->generateBillingMessage($item, $billingData);
