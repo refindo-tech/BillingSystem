@@ -148,9 +148,6 @@ public static function rechargeUser(
     //create user transaction
     public static function createUserTransaction(UserRecharge $userRecharge, $channel)
     {
-
-
-        
         $activeGateway = Config::get('active_payment_gateway');
         if (empty($activeGateway)) {
             $activeGateway = 'tripay';
@@ -205,6 +202,8 @@ public static function rechargeUser(
             ]);
         }
 
+        static::createInvoice($userRecharge, $activeGateway, $channel);
+
         return $activeGateway === 'xendit'
             ? Xendit::createTransaction($order, $userRecharge->customer)
             : Tripay::createTransaction($order, $userRecharge->customer);
@@ -237,15 +236,21 @@ public static function rechargeUser(
             ? static::calculateExpiration($userRecharge->plan, $userRecharge->validity_cycle, $userRecharge)
             : $userRecharge->expired_at;
 
+            $userRecharge->update([
+                'status' => 'on',
+                'expired_at' => $expiredAt,
+            ]);
+
+        
+        return true;
+    }
+
+    public static function createInvoice(UserRecharge $userRecharge, $rechargeGateway, $channel)
+    {
         $pendingUserRecharge = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)->first();
-        $price = ($trasaction_type == 'recharge' && $pendingUserRecharge && $pendingUserRecharge->price !== null)
+        $price = ($pendingUserRecharge && $pendingUserRecharge->price !== null)
             ? $pendingUserRecharge->price
             : $userRecharge->plan->price;
-
-        $userRecharge->update([
-            'status' => 'on',
-            'expired_at' => $expiredAt,
-        ]);
 
         Transaction::create([
             'invoice' => 'INV-' . Package::_raid(5),
@@ -333,19 +338,6 @@ public static function rechargeUser(
         $price = ($plan->id == $userRecharge->plan_id)
             ? $plan->price
             : static::calculatePrice($userRecharge->recharged_at, $userRecharge->expired_at, $userRecharge->plan->price, $plan->price);
-
-        //Pending user recharge
-        // PendingUserRecharge::create([
-        //     'user_recharge_id' => $userRecharge->id,
-        //     'customer_id' => $customer->id,
-        //     'plan_id' => $plan->id,
-        //     'router_id' => $mikrotik->id,
-        //     'server_id' => $userRecharge->server_id,
-        //     'username' => $username,
-        //     'price' => $price,
-        //     'status' => 'pending',
-        //     'scheduled_for' => now(),
-        // ]);
 
         //check if there is a pending transaction
         $pendingPayment = PaymentGateway::where('user_recharge_id', $userRecharge->id)->where('status', PaymentGatewayStatus::UNPAID)->first();

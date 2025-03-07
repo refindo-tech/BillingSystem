@@ -51,6 +51,7 @@ class CheckAwaitingBill extends Command
             
             if ($awaitingBill) {
                 $this->info("Pending user recharge found for {$userRecharge->customer->username}. Processing...");
+                
                 $this->processPayment($awaitingBill);
             } else {
                 $this->info("No pending user recharge found for {$userRecharge->customer->username}. Creating new payment gateway...");
@@ -73,6 +74,8 @@ class CheckAwaitingBill extends Command
                 ]);
                 
                 $this->info("Payment gateway created for {$userRecharge->customer->username}.");
+                Package::createInvoice($userRecharge, $activeGateway, $payment_channel);
+                $this->info("Invoice created for {$userRecharge->customer->username}.");
                 $this->processTransaction($paymentGateway, $userRecharge->customer, $activeGateway);
             }
         }
@@ -107,6 +110,8 @@ class CheckAwaitingBill extends Command
             ]);
             
             $this->info("Payment gateway created for {$awaitingBill->username}.");
+            Package::createInvoice($awaitingBill->userRecharge, $activeGateway, $payment_channel);
+            $this->info("Invoice created for {$awaitingBill->username}.");
             $this->processTransaction($paymentGateway, $awaitingBill->userRecharge->customer, $activeGateway);
 
             $awaitingBill->update(['status' => PendingUserRechargeStatus::CONFIRMED]);
