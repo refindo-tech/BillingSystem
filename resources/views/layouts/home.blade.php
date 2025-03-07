@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'My App' }}</title>
-    <link rel="icon" href="{{ asset('assets/media/logos/favicon.ico') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/media/logos/new-favicon.png') }}" type="image/x-icon" />
     @vite('resources/css/app.css')
 </head>
 <body>
@@ -82,7 +82,7 @@
                         </svg>
                     </div>
                     <div class="ml-[27px]">
-                        <a href="https://maps.app.goo.gl/pmvV2mj6KVq1Vjbh6" class="font-Inter text-[14px] font-medium text-[#fff]">JL Pesona Kahuripan 3 Blok C1 no 7, Desa Bojong Kec.Kelapa Nunggal Kab.Bogor 16710</a>
+                        <a href="https://maps.app.goo.gl/DEBFE7UnHcGKorHFA" class="font-Inter text-[14px] font-medium text-[#fff]">JL Pesona Kahuripan 3 Blok C1 no 7, Desa Bojong Kec.Kelapa Nunggal Kab.Bogor 16710</a>
                         <p class="font-Inter text-[12px] font-medium text-white">Address</p>
                     </div>
                 </div>
