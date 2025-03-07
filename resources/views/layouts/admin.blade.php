@@ -43,6 +43,7 @@
 
     @include('includes.script')
     @stack('addon-script')
+    @stack('scripts')
 
     @if (session()->has('success'))
         <script>

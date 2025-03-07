@@ -21,7 +21,7 @@ class UserRechargeDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
-            ->addColumn('action', fn ($row) => view('datatable.action.prepaid-user-action', $row))
+            ->addColumn('action', fn($row) => view('datatable.action.prepaid-user-action', $row))
             ->editColumn('created_at', function ($row) {
                 return Lang::dateTimeFormat($row->created_at);
             })
@@ -31,7 +31,7 @@ class UserRechargeDataTable extends DataTable
             ->editColumn('expired_at', function ($row) {
                 return Lang::dateTimeFormat($row->expired_at);
             })
-            ->editColumn('status', fn ($status) => view('datatable.column.recharge-status-label', $status))
+            ->editColumn('status', fn($status) => view('datatable.column.recharge-status-label', $status))
             ->setRowId('id');
     }
 
@@ -40,12 +40,47 @@ class UserRechargeDataTable extends DataTable
      */
     public function query(UserRecharge $model): QueryBuilder
     {
-        return $model->newQuery()
+        $query = $model->newQuery()
             ->with('plan:id,name,type')
             ->with('customer:id,fullname')
             ->with('router:id,name')
             ->with('server:id,name');
+
+        if ($status = request('status')) {
+            $query->where('status', $status);
+        }
+
+        if ($planName = request('plan_name')) {
+            $query->whereHas('plan', function ($q) use ($planName) {
+                $q->where('name', $planName);
+            });
+        }
+
+        if ($planType = request('plan_type')) {
+            $query->whereHas('plan', function ($q) use ($planType) {
+                $q->where('type', $planType);
+            });
+        }
+
+        if ($validityCycle = request('validity_cycle')) {
+            $query->where('validity_cycle', $validityCycle);
+        }
+
+        if ($routerName = request('router_name')) {
+            $query->whereHas('router', function ($q) use ($routerName) {
+                $q->where('name', $routerName);
+            });
+        }
+
+        if ($serverName = request('server_name')) {
+            $query->whereHas('server', function ($q) use ($serverName) {
+                $q->where('name', $serverName);
+            });
+        }
+
+        return $query;
     }
+
 
     /**
      * Optional method if you want to use the html builder.
@@ -55,7 +90,17 @@ class UserRechargeDataTable extends DataTable
         return $this->builder()
             ->columns($this->getColumns())
             ->minifiedAjax()
-                    //->dom('Bfrtip')
+            ->ajax([
+                'url' => '',
+                'data' => 'function(d) {
+                d.status = $("#filter-status").val();
+                d.plan_name = $("#filter-plan-name").val();
+                d.plan_type = $("#filter-plan-type").val();
+                d.validity_cycle = $("#filter-validity-cycle").val();
+                d.router_name = $("#filter-router-name").val();
+                d.server_name = $("#filter-server-name").val();
+            }'
+            ])
             ->orderBy(1)
             ->selectStyleSingle()
             ->buttons([
@@ -63,10 +108,9 @@ class UserRechargeDataTable extends DataTable
                 Button::make('csv'),
                 Button::make('pdf'),
                 Button::make('print'),
-                // Button::make('reset'),
-                // Button::make('reload')
             ]);
     }
+
 
     /**
      * Get the dataTable columns definition.
@@ -76,10 +120,10 @@ class UserRechargeDataTable extends DataTable
         return [
             Column::make('id')->hidden(),
             Column::make('service_number')->title('Nomor Layanan'),
+            Column::make('status'),
             Column::make('username'),
             Column::make('pppoe_password')->title('Password'),
             Column::make('customer.fullname')->title('Nama Pelanggan'),
-            Column::make('status'),
             Column::make('plan.name'),
             Column::make('plan.type'),
             Column::make('validity_cycle')->title('Siklus'),
@@ -98,6 +142,6 @@ class UserRechargeDataTable extends DataTable
      */
     protected function filename(): string
     {
-        return 'UserRecharge_'.date('YmdHis');
+        return 'UserRecharge_' . date('YmdHis');
     }
 }
