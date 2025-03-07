@@ -25,6 +25,9 @@ class UserRechargeDataTable extends DataTable
             ->editColumn('created_at', function ($row) {
                 return Lang::dateTimeFormat($row->created_at);
             })
+            ->editColumn('recharged_at', function ($row) {
+                return Lang::dateTimeFormat($row->recharged_at);
+            })
             ->editColumn('expired_at', function ($row) {
                 return Lang::dateTimeFormat($row->expired_at);
             })
@@ -40,7 +43,8 @@ class UserRechargeDataTable extends DataTable
         return $model->newQuery()
             ->with('plan:id,name,type')
             ->with('customer:id,fullname')
-            ->with('router:id,name');
+            ->with('router:id,name')
+            ->with('server:id,name');
     }
 
     /**
@@ -73,14 +77,18 @@ class UserRechargeDataTable extends DataTable
             Column::make('id')->hidden(),
             Column::make('service_number')->title('Nomor Layanan'),
             Column::make('username'),
+            Column::make('pppoe_password')->title('Password'),
             Column::make('customer.fullname')->title('Nama Pelanggan'),
             Column::make('status'),
             Column::make('plan.name'),
             Column::make('plan.type'),
-            Column::make('created_at'),
-            Column::computed('expired_at'),
+            Column::make('validity_cycle')->title('Siklus'),
+            Column::make('created_at')->title('Tanggal Registrasi'),
+            Column::make('recharged_at')->title('Tanggal Isi Ulang'),
+            Column::computed('expired_at')->title('Tanggal Kadaluarsa'),
             Column::make('method'),
-            Column::make('router.name'),
+            Column::make('router.name')->title('Router'),
+            Column::make('server.name')->title('Server'),
             Column::computed('action'),
         ];
     }

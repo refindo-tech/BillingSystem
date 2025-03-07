@@ -40,6 +40,8 @@ class CheckAwaitingBill extends Command
         $userRecharges = UserRecharge::where('status', 'on')
             ->whereDate('expired_at', '<=', now()->addDays(7))
             ->get();
+
+        $this->info("Found {$userRecharges->count()} user recharges that are about to expire in the next 7 days.");
         
         foreach ($userRecharges as $userRecharge) {
             $this->info("Checking user: {$userRecharge->customer->username}...");
