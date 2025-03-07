@@ -105,8 +105,11 @@ class AdminPrepaidController extends Controller
         }
 
         $mode = 'add';
+        $prefix = '00000';
         $customers = Customer::all()->mapWithKeys(fn($customer) => [
-            $customer->id => $customer->username . ' - ' . $customer->fullname . ' - ' . $customer->email,
+
+            $customer->id => (strlen($prefix) > strlen($customer->id) ? substr($prefix, 0, strlen($prefix) - strlen($customer->id)) : '') . $customer->id . ' - ' . $customer->fullname . ' - ' . $customer->email,
+
         ]);
         $user['customer_id'] = $user->id;
         $planTypes = array_column(PlanType::cases(), 'value', 'value');
