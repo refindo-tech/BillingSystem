@@ -105,8 +105,6 @@ public static function rechargeUser(
 
         $userRecharge = null;
 
-        // dd($username, $pppoePassword, $plan->type, $plan->name, $date_now, $date_exp, $gateway->value, $channel, $mikrotik->id, $serviceNumber, $validityCycle, $server_id);
-    
         if ($userRecharge) {
             // Extend validity if same plan is active
             if ($userRecharge->namebp == $plan->name && $userRecharge->is_active) {
@@ -149,6 +147,9 @@ public static function rechargeUser(
     //create user transaction
     public static function createUserTransaction(UserRecharge $userRecharge, $channel)
     {
+
+        
+
         $activeGateway = Config::get('active_payment_gateway');
         if (empty($activeGateway)) {
             $activeGateway = 'tripay';
@@ -168,6 +169,8 @@ public static function rechargeUser(
         $order = PaymentGateway::where('user_recharge_id', $userRecharge->id)
             ->where('status', PaymentGatewayStatus::UNPAID)
             ->first();
+
+        
 
         // Check for existing unpaid transaction
         if ($order && $order->pg_url_payment) {
@@ -202,6 +205,8 @@ public static function rechargeUser(
                 'status' => PaymentGatewayStatus::UNPAID,
             ]);
         }
+
+        
 
         static::createInvoice($userRecharge, $activeGateway, $channel);
 
@@ -248,10 +253,18 @@ public static function rechargeUser(
 
     public static function createInvoice(UserRecharge $userRecharge, $rechargeGateway, $channel)
     {
+
+        
+
         $pendingUserRecharge = PendingUserRecharge::where('user_recharge_id', $userRecharge->id)->first();
+
+        
+
         $price = ($pendingUserRecharge && $pendingUserRecharge->price !== null)
             ? $pendingUserRecharge->price
             : $userRecharge->plan->price;
+
+        
 
         Transaction::create([
             'invoice' => 'INV-' . Package::_raid(5),
@@ -260,10 +273,12 @@ public static function rechargeUser(
             'price' => $price,
             'recharged_at' => $userRecharge->recharged_at,
             'expired_at' => $userRecharge->expired_at,
-            'method' => "$rechargeGateway->value - $channel",
+            'method' => "$rechargeGateway - $channel",
             'routers' => $userRecharge->router->name,
             'type' => $userRecharge->plan->type,
         ]);
+
+        
 
         return true;
     }
