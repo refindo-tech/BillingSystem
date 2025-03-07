@@ -47,8 +47,10 @@ Route::name('admin:')->group(function () {
         Route::get('prepaid/user/upgrade/option', [AdminPrepaidController::class, 'upgradeOption'])->name('prepaid.user.upgrade.option');
         Route::get('prepaid/user/service-number', [AdminPrepaidController::class, 'serviceNumber'])->name('prepaid.user.service-number');
         Route::get('prepaid/user/expired-at', [AdminPrepaidController::class, 'expiredAt'])->name('prepaid.user.expired-at');
+        Route::post('prepaid/user/batch-action', [AdminPrepaidController::class, 'batchAction'])->name('prepaid.user.batch-action');
         Route::get('prepaid/invoice/{invoice}/show', [AdminPrepaidController::class, 'showInvoice'])->name('prepaid.invoice.show');
         Route::get('prepaid/invoice/{invoice}/print', [AdminPrepaidController::class, 'printInvoice'])->name('prepaid.invoice.print');
+       
 
         // voucher
         Route::get('prepaid/voucher', [AdminPrepaidController::class, 'voucher'])->name('prepaid.voucher.index');
