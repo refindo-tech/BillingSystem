@@ -16,6 +16,7 @@ class UserRecharge extends Model
     protected $fillable = [
         'customer_id',
         'plan_id',
+        'initial_plan_id',
         'router_id',
         'server_id',
         'username',

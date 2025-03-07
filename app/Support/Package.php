@@ -127,6 +127,7 @@ public static function rechargeUser(
                 'username' => $username,
                 'pppoe_password' => $pppoePassword,
                 'plan_id' => $plan->id,
+                'initial_plan_id' => $plan->id,
                 'namebp' => $plan->name,
                 'recharged_at' => $date_now,
                 'expired_at' => $date_exp,
