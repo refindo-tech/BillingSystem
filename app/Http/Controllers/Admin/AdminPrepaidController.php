@@ -196,6 +196,7 @@ class AdminPrepaidController extends Controller
             // Generate pesan WhatsApp
             $message = $this->generateRechargeMessage($customer, $plan, $request);
             $messageSchedule = $this->generateBillingMessage($customer, $plan, $request);
+            // dd($transaction, $message, $messageSchedule);
 
             // Kirim pesan WhatsApp jika nomor HP tersedia
             if (!empty($customer->phonenumber) && $message) {
@@ -213,19 +214,22 @@ class AdminPrepaidController extends Controller
                 if ($plan->validity_unit === ValidityUnit::MONTHS) {
                     $expiredAt = Carbon::parse($request->expired_at)->subDays(7)->timestamp;
                     SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
                     WhatsappMessage::create([
                         'phone'   => $customer->phonenumber,
                         'message' => $messageSchedule,
-                        'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
                         'status'  => 'scheduled',
                     ]);
+
                 } elseif ($plan->validity_unit === ValidityUnit::DAYS) {
                     $expiredAt = Carbon::parse($request->expired_at)->subDays(1)->timestamp;
                     SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
                     WhatsappMessage::create([
                         'phone'   => $customer->phonenumber,
                         'message' => $messageSchedule,
-                        'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
                         'status'  => 'scheduled',
                     ]);
                 }
@@ -234,6 +238,7 @@ class AdminPrepaidController extends Controller
             Log::put('Recharge account '.$customer->username, auth()->user());
 
             return redirect()->route('admin:prepaid.user.index')->with('success', __('success.created'));
+
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -268,6 +273,7 @@ class AdminPrepaidController extends Controller
     {
         // Ambil template pesan dari database berdasarkan tipe 'Penagihan'
         $template = WhatsAppTemplate::where('type', 'Penagihan')->first();
+        $transaction = Transaction::where('username', $customer->username)->latest('id')->first();
         if (!$template) return null;
 
         // Data pengganti untuk template
@@ -275,7 +281,7 @@ class AdminPrepaidController extends Controller
             '#NOLAYANAN#'       => $request->service_number,
             '#NAMAPELANGGAN#'   => $customer->fullname,
             '#ALAMATPASANG#'    => $customer->address,
-            // '#INVOICE#'         => $transaction->invoice,
+            '#INVOICE#'         => $transaction->invoice,
             '#PERIODE#'         => $request->periode,
             '#SUBTOTAL#'        => number_format($plan->price, 0, ',', '.'),
             '#DISKON#'          => number_format($request->diskon, 0, ',', '.'),

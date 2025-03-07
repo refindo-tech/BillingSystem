@@ -260,7 +260,7 @@ public static function rechargeUser(
             'price' => $price,
             'recharged_at' => $userRecharge->recharged_at,
             'expired_at' => $userRecharge->expired_at,
-            'method' => "$rechargeGateway->value - $channel",
+            'method' => "$rechargeGateway - $channel",
             'routers' => $userRecharge->router->name,
             'type' => $userRecharge->plan->type,
         ]);
