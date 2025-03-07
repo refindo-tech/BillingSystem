@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
-        <link rel="icon" href="{{ asset('assets/media/logos/favicon.ico') }}" type="image/x-icon" />
+        <title>{{ config('Masuk sebagai pengunjung', 'Masuk sebagai pengunjung') }}</title>
+        <link rel="icon" href="{{ asset('assets/media/logos/new-favicon.png') }}" type="image/x-icon" />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -20,7 +20,7 @@
             <div>
                 <a href="/">
                     {{-- <x-application-logo class="w-20 h-20 fill-current text-gray-500" /> --}}
-                    <img src="{{ asset('assets/media/logos/logo.png') }}" class="h-20" alt="NETPLUS Connection" />
+                    <img src="{{ asset('assets/media/logos/new-logo.png') }}" class="h-20" alt="PT Inovasi Network Plus" />
                 </a>
             </div>
 
