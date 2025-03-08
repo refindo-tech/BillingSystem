@@ -26,10 +26,10 @@ class PaymentTripayRepository
             'tripay_private_key',
             'tripay_merchant_code',
             'tripay_channels',
-            'tripay_environtment',
+            'tripay_environment',
         ]);
         // $this->baseUrl = config('payment.tripay.sandbox_base_url');
-        if ($this->config->get('tripay_environtment') === 'production') {
+        if ($this->config->get('tripay_environment') === 'production') {
             $this->baseUrl = config('payment.tripay.base_url');
         } else {
             $this->baseUrl = config('payment.tripay.sandbox_base_url');
@@ -121,17 +121,22 @@ class PaymentTripayRepository
             throw new AppException('Transaction still unpaid.');
         }
 
+        
+
         if (in_array($status, ['PAID', 'SUCCESS']) && $trx->status != PaymentGatewayStatus::PAID) {
             try {
-                Package::activatePackage($trx->userRecharge, RechargeGateway::TRIPAY, $result['payment_channel'], $trx->transaction_type);
+                
+                Package::activatePackage($trx->userRecharge, RechargeGateway::TRIPAY, $result['data']['payment_method'], $trx->transaction_type);
             } catch (Exception $e) {
                 throw new AppException('Failed to activate your package, please try again.');
             }
 
+            // dd($result);
+
             $trx->pg_paid_response = json_encode($result);
             $trx->payment_method = $result['data']['payment_method'];
             $trx->payment_channel = $result['data']['payment_name'];
-            $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['data']['pay_time']));
+            $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['data']['paid_at']));
             $trx->status = PaymentGatewayStatus::PAID;
             $trx->save();
 
