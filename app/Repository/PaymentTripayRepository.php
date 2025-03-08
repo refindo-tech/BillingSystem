@@ -13,6 +13,9 @@ use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
 class PaymentTripayRepository
 {
     protected string $baseUrl;
@@ -100,56 +103,61 @@ class PaymentTripayRepository
     }
 
     public function getStatus(PaymentGateway $trx, Customer $user)
-    {
+{
+    if ($trx->status == PaymentGatewayStatus::PAID) {
+        return true;
+    }
+
+    $result = Http::withHeaders([
+        'Authorization' => 'Bearer ' . $this->config->get('tripay_api_key')
+    ])->get($this->baseUrl . '/transaction/detail', [
+        'reference' => $trx->gateway_trx_id
+    ])->collect();
+
+    if (! $result->get('success')) {
+        throw new AppException('Failed to check transaction status: ' . $result->get('message'));
+    }
+
+    $status = $result['data']['status'];
+    
+    if ($status === 'UNPAID') {
+        throw new AppException('Transaction still unpaid.');
+    }
+
+    DB::beginTransaction();
+    try {
+        // Lock transaction to prevent duplicate processing
+        $trx = PaymentGateway::where('id', $trx->id)->lockForUpdate()->first();
+
+        // Double-check if already processed
         if ($trx->status == PaymentGatewayStatus::PAID) {
+            DB::rollBack();
             return true;
         }
 
-        $result = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->config->get('tripay_api_key')
-        ])->get($this->baseUrl . '/transaction/detail', [
-            'reference' => $trx->gateway_trx_id
-        ])->collect();
-
-        if (! $result->get('success')) {
-            throw new AppException('Failed to check transaction status: ' . $result->get('message'));
-        }
-
-        $status = $result['data']['status'];
-        
-        if ($status === 'UNPAID') {
-            throw new AppException('Transaction still unpaid.');
-        }
-
-        
-
-        if (in_array($status, ['PAID', 'SUCCESS']) && $trx->status != PaymentGatewayStatus::PAID) {
-            try {
-                
-                Package::activatePackage($trx->userRecharge, RechargeGateway::TRIPAY, $result['data']['payment_method'], $trx->transaction_type);
-            } catch (Exception $e) {
-                throw new AppException('Failed to activate your package, please try again.');
-            }
-
-            // dd($result);
+        if (in_array($status, ['PAID', 'SUCCESS'])) {
+            Package::activatePackage($trx->userRecharge, RechargeGateway::TRIPAY, $result['data']['payment_method'], $trx->transaction_type);
 
             $trx->pg_paid_response = json_encode($result);
             $trx->payment_method = $result['data']['payment_method'];
             $trx->payment_channel = $result['data']['payment_name'];
             $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['data']['paid_at']));
             $trx->status = PaymentGatewayStatus::PAID;
-            $trx->save();
-
-            return true;
-        }
-
-        if ($status === 'EXPIRED' || $status === 'FAILED') {
+        } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
             $trx->pg_paid_response = json_encode($result);
             $trx->status = PaymentGatewayStatus::FAILED;
-            $trx->save();
             throw new AppException('Transaction expired or failed.');
         }
 
-        throw new AppException('Unknown transaction status.');
+        $trx->save();
+        DB::commit();
+        return true;
+
+    } catch (Exception $e) {
+        DB::rollBack();
+        Log::error('Tripay getStatus error: ' . $e->getMessage());
+        throw new AppException('Failed to process transaction.');
     }
+}
+
 }

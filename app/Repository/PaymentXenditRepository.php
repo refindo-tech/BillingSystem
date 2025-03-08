@@ -13,6 +13,9 @@ use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
 class PaymentXenditRepository
 {
     protected string $baseUrl;
@@ -86,40 +89,52 @@ class PaymentXenditRepository
     }
 
     public function getStatus(PaymentGateway $trx, Customer $user)
-    {
+{
+    if ($trx->status == PaymentGatewayStatus::PAID) {
+        return true;
+    }
+
+    $result = Http::withBasicAuth($this->config->get('xendit_secret_key'), '')
+        ->get($this->baseUrl.'/invoices/'.$trx['gateway_trx_id'])->collect();
+
+    if ($result['status'] == 'PENDING') {
+        throw new AppException('Transaction still unpaid.');
+    }
+
+    DB::beginTransaction();
+    try {
+        // Lock transaction to prevent duplicate processing
+        $trx = PaymentGateway::where('id', $trx->id)->lockForUpdate()->first();
+
+        // Double-check if already processed
         if ($trx->status == PaymentGatewayStatus::PAID) {
+            DB::rollBack();
             return true;
         }
-        $result = Http::withBasicAuth($this->config->get('xendit_secret_key'), '')
-            ->get($this->baseUrl.'/invoices/'.$trx['gateway_trx_id'])->collect();
-        if ($result['status'] == 'PENDING') {
-            throw new AppException('Transaction still unpaid');
-        }
 
-        
+        if (in_array($result['status'], ['PAID', 'SETTLED'])) {
+            Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel'], $trx->transaction_type);
 
-        if (in_array($result['status'], ['PAID', 'SETTLED']) && $trx->status != PaymentGatewayStatus::PAID) {
-            try {
-                Package::activatePackage($trx->userRecharge, RechargeGateway::XENDIT, $result['payment_channel'], $trx->transaction_type);
-            } catch (Exception $e) {
-                throw new AppException('Failed to activate your package, please try again');
-            }
             $trx->pg_paid_response = json_encode($result);
             $trx->payment_method = $result['payment_method'];
             $trx->payment_channel = $result['payment_channel'];
             $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['updated']));
-            $trx->status = 2;
-
-            $trx->save();
-
-            return true;
-        }
-        if ($result['status'] == 'EXPIRED') {
+            $trx->status = PaymentGatewayStatus::PAID;
+        } elseif ($result['status'] == 'EXPIRED') {
             $trx->pg_paid_response = json_encode($result);
             $trx->status = PaymentGatewayStatus::FAILED;
-            $trx->save();
-            throw new AppException('Transaction expired');
+            throw new AppException('Transaction expired.');
         }
-        throw new AppException('Unknown command');
+
+        $trx->save();
+        DB::commit();
+        return true;
+
+    } catch (Exception $e) {
+        DB::rollBack();
+        Log::error('Xendit getStatus error: ' . $e->getMessage());
+        throw new AppException('Failed to process transaction.');
     }
+}
+
 }
