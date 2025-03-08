@@ -214,13 +214,28 @@ class AdminPrepaidController extends Controller
                     'status' => 'sent',
                 ]);
 
-                SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
-                WhatsappMessage::create([
-                    'phone' => $customer->phonenumber,
-                    'message' => $messageSchedule,
-                    'date' => $expiredAt, // Simpan sesuai jadwal pengiriman
-                    'status' => 'scheduled',
-                ]);
+                if ($plan->validity_unit === ValidityUnit::MONTHS) {
+                    $expiredAt = Carbon::parse($request->expired_at)->subDays(7)->timestamp;
+                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $messageSchedule,
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
+                        'status'  => 'scheduled',
+                    ]);
+
+                } elseif ($plan->validity_unit === ValidityUnit::DAYS) {
+                    $expiredAt = Carbon::parse($request->expired_at)->subDays(1)->timestamp;
+                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $messageSchedule,
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
+                        'status'  => 'scheduled',
+                    ]);
+                }
             }
 
             Log::put('Recharge account ' . $customer->username, auth()->user());
@@ -269,20 +284,20 @@ class AdminPrepaidController extends Controller
 
         // Data pengganti untuk template
         $replacements = [
-            '#NOLAYANAN#' => $request->service_number,
-            '#NAMAPELANGGAN#' => $customer->fullname,
-            '#ALAMATPASANG#' => $customer->address,
-            '#INVOICE#' => $transaction->invoice,
-            '#PERIODE#' => $request->periode,
-            '#SUBTOTAL#' => number_format($transaction->price, 0, ',', '.'),
-            '#DISKON#' => number_format($request->diskon, 0, ',', '.'),
-            '#KODEUNIK#' => $request->kode_unik,
-            '#PPN#' => number_format($request->ppn, 0, ',', '.'),
-            '#ADM#' => number_format($request->adm, 0, ',', '.'),
-            '#TOTAL#' => number_format($transaction->price, 0, ',', '.'),
-            '#JATUHTEMPO#' => $request->expired_at,
-            '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
-            '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
+            '#NOLAYANAN#'       => $request->service_number,
+            '#NAMAPELANGGAN#'   => $customer->fullname,
+            '#ALAMATPASANG#'    => $customer->address,
+            '#INVOICE#'         => $transaction->invoice,
+            '#PERIODE#'         => $request->periode,
+            '#SUBTOTAL#'        => number_format($plan->price, 0, ',', '.'),
+            '#DISKON#'          => number_format($request->diskon, 0, ',', '.'),
+            '#KODEUNIK#'        => $request->kode_unik,
+            '#PPN#'             => number_format($request->ppn, 0, ',', '.'),
+            '#ADM#'             => number_format($request->adm, 0, ',', '.'),
+            '#TOTAL#'           => number_format($plan->price, 0, ',', '.'),
+            '#JATUHTEMPO#'      => $request->expired_at,
+            '#VIATRANSFERBANK#' => "Via Transfer Bank: BNI, BCA, Mandiri, BTN, BSI, Permata Bank",
+            '#VIAPAYMENTGATEWAY#' => "Via Dana virtual: GoPay, ShopeePay, Dana, OVO",
         ];
 
         // Mengganti placeholder dengan nilai dari pelanggan
@@ -569,13 +584,88 @@ class AdminPrepaidController extends Controller
 
     private function batchActivate(array $ids)
     {
-        // UserRecharge::whereIn('id', $ids)->update(['status' => 'on']);
+        $users = UserRecharge::whereIn('id', $ids)->where('status', 'off')->get();
+
+        foreach ($users as $user) {
+            try {
+                $client = Mikrotik::getClient($user->router->ip_address, $user->router->username, $user->router->password);
+                $customer = Customer::findOrFail($user->customer_id);
+
+                if ($user->type == PlanType::HOTSPOT) {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius activation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setHotspotUserPackage($client, $user->username, $user->plan->name);
+                        } else {
+                            Mikrotik::addHotspotUser($client, $user->plan, $customer, $user->username, $user->password);
+                        }
+                        
+                    }
+                } else {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius activation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setPpoeUserPlan($client, $user->username, $user->plan->name);
+                        } else {
+                            Mikrotik::addPpoeUser($client, $user->plan, $customer, $user->username, $user->password);
+                        }
+                        
+                    }
+                }
+
+                $user->status = 'on';
+                $user->save();
+            } catch (\Exception $e) {
+                Log::error('Failed to activate user ' . $user->username . ': ' . $e->getMessage());
+            }
+        }
+
+        Log::put('Activate ' . count($users) . ' accounts', auth()->user());
         return response()->json(['message' => 'Berhasil mengaktifkan akun terpilih.']);
     }
 
     private function batchDeactivate(array $ids)
     {
-        // UserRecharge::whereIn('id', $ids)->update(['status' => 'off']);
+        $users = UserRecharge::whereIn('id', $ids)->where('status', 'on')->get();
+
+        foreach ($users as $user) {
+            try {
+                $client = Mikrotik::getClient($user->router->ip_address, $user->router->username, $user->router->password);
+
+                if ($user->type == PlanType::HOTSPOT) {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius deactivation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setHotspotUserPackage($client, $user->username, 'EXPIRED ' . $user->plan->pool_expired->pool_name);
+                        } else {
+                            Mikrotik::removeHotspotUser($client, $user->username);
+                        }
+                        Mikrotik::removeHotspotActiveUser($client, $user->username);
+                    }
+                } else {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius deactivation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setPpoeUserPlan($client, $user->username, 'EXPIRED ' . $user->plan->pool_expired->pool_name);
+                        } else {
+                            Mikrotik::removePpoeUser($client, $user->username);
+                        }
+                        Mikrotik::removePpoeActive($client, $user->username);
+                    }
+                }
+
+                $user->status = 'off';
+                $user->save();
+            } catch (\Exception $e) {
+                Log::error('Failed to deactivate user ' . $user->username . ': ' . $e->getMessage());
+            }
+        }
+
+        Log::put('Deactivate ' . count($users) . ' accounts', auth()->user());
         return response()->json(['message' => 'Berhasil menonaktifkan akun terpilih.']);
     }
 
