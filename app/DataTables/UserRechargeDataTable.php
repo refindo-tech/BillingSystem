@@ -19,21 +19,21 @@ class UserRechargeDataTable extends DataTable
      * @param  QueryBuilder  $query Results from query() method.
      */
     public function dataTable(QueryBuilder $query): EloquentDataTable
-    {
-        return (new EloquentDataTable($query))
-            ->addColumn('action', fn($row) => view('datatable.action.prepaid-user-action', $row))
-            ->editColumn('created_at', function ($row) {
-                return Lang::dateTimeFormat($row->created_at);
-            })
-            ->editColumn('recharged_at', function ($row) {
-                return Lang::dateTimeFormat($row->recharged_at);
-            })
-            ->editColumn('expired_at', function ($row) {
-                return Lang::dateTimeFormat($row->expired_at);
-            })
-            ->editColumn('status', fn($status) => view('datatable.column.recharge-status-label', $status))
-            ->setRowId('id');
-    }
+{
+    return (new EloquentDataTable($query))
+        ->addColumn('checkbox', function ($row) {
+            return '<input type="checkbox" class="row-checkbox w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 transition duration-150 ease-in-out ml-2" value="' . $row->id . '">';
+        })
+        ->rawColumns(['checkbox'])
+        ->addColumn('action', fn ($row) => view('datatable.action.prepaid-user-action', $row))
+        ->editColumn('created_at', fn ($row) => Lang::dateTimeFormat($row->created_at))
+        ->editColumn('recharged_at', fn ($row) => Lang::dateTimeFormat($row->recharged_at))
+        ->editColumn('expired_at', fn ($row) => Lang::dateTimeFormat($row->expired_at))
+        ->editColumn('status', fn ($status) => view('datatable.column.recharge-status-label', $status))
+        ->setRowId('id');
+}
+
+
 
     /**
      * Get the query source of dataTable.
@@ -116,26 +116,36 @@ class UserRechargeDataTable extends DataTable
      * Get the dataTable columns definition.
      */
     public function getColumns(): array
-    {
-        return [
-            Column::make('id')->hidden(),
-            Column::make('service_number')->title('Nomor Layanan'),
-            Column::make('status'),
-            Column::make('username'),
-            Column::make('pppoe_password')->title('Password'),
-            Column::make('customer.fullname')->title('Nama Pelanggan'),
-            Column::make('plan.name'),
-            Column::make('plan.type'),
-            Column::make('validity_cycle')->title('Siklus'),
-            Column::make('created_at')->title('Tanggal Registrasi'),
-            Column::make('recharged_at')->title('Tanggal Isi Ulang'),
-            Column::computed('expired_at')->title('Tanggal Kadaluarsa'),
-            Column::make('method'),
-            Column::make('router.name')->title('Router'),
-            Column::make('server.name')->title('Server'),
-            Column::computed('action'),
-        ];
-    }
+{
+    return [
+        Column::computed('checkbox')
+            ->title('<input type="checkbox" id="select-all" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 transition duration-150 ease-in-out ml-2">')
+            ->exportable(false)
+            ->printable(false)
+            ->orderable(false)
+            ->searchable(false)
+            ->width(20)
+            ->addClass('text-center'),
+        Column::make('id')->hidden(),
+        Column::make('service_number')->title('Nomor Layanan'),
+        Column::make('username'),
+        Column::make('pppoe_password')->title('Password'),
+        Column::make('customer.fullname')->title('Nama Pelanggan'),
+        Column::make('status'),
+        Column::make('plan.name'),
+        Column::make('plan.type'),
+        Column::make('validity_cycle')->title('Siklus'),
+        Column::make('created_at')->title('Tanggal Registrasi'),
+        Column::make('recharged_at')->title('Tanggal Isi Ulang'),
+        Column::computed('expired_at')->title('Tanggal Kadaluarsa'),
+        Column::make('method'),
+        Column::make('router.name')->title('Router'),
+        Column::make('server.name')->title('Server'),
+        Column::computed('action'),
+    ];
+}
+
+
 
     /**
      * Get the filename for export.
