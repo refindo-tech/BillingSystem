@@ -574,13 +574,88 @@ class AdminPrepaidController extends Controller
 
     private function batchActivate(array $ids)
     {
-        // UserRecharge::whereIn('id', $ids)->update(['status' => 'on']);
+        $users = UserRecharge::whereIn('id', $ids)->where('status', 'off')->get();
+
+        foreach ($users as $user) {
+            try {
+                $client = Mikrotik::getClient($user->router->ip_address, $user->router->username, $user->router->password);
+                $customer = Customer::findOrFail($user->customer_id);
+
+                if ($user->type == PlanType::HOTSPOT) {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius activation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setHotspotUserPackage($client, $user->username, $user->plan->name);
+                        } else {
+                            Mikrotik::addHotspotUser($client, $user->plan, $customer, $user->username, $user->password);
+                        }
+                        
+                    }
+                } else {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius activation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setPpoeUserPlan($client, $user->username, $user->plan->name);
+                        } else {
+                            Mikrotik::addPpoeUser($client, $user->plan, $customer, $user->username, $user->password);
+                        }
+                        
+                    }
+                }
+
+                $user->status = 'on';
+                $user->save();
+            } catch (\Exception $e) {
+                Log::error('Failed to activate user ' . $user->username . ': ' . $e->getMessage());
+            }
+        }
+
+        Log::put('Activate ' . count($users) . ' accounts', auth()->user());
         return response()->json(['message' => 'Berhasil mengaktifkan akun terpilih.']);
     }
 
     private function batchDeactivate(array $ids)
     {
-        // UserRecharge::whereIn('id', $ids)->update(['status' => 'off']);
+        $users = UserRecharge::whereIn('id', $ids)->where('status', 'on')->get();
+
+        foreach ($users as $user) {
+            try {
+                $client = Mikrotik::getClient($user->router->ip_address, $user->router->username, $user->router->password);
+
+                if ($user->type == PlanType::HOTSPOT) {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius deactivation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setHotspotUserPackage($client, $user->username, 'EXPIRED ' . $user->plan->pool_expired->pool_name);
+                        } else {
+                            Mikrotik::removeHotspotUser($client, $user->username);
+                        }
+                        Mikrotik::removeHotspotActiveUser($client, $user->username);
+                    }
+                } else {
+                    if ($user->plan->is_radius) {
+                        // TODO: Handle radius deactivation
+                    } else {
+                        if (!empty($user->plan->pool_expired_id)) {
+                            Mikrotik::setPpoeUserPlan($client, $user->username, 'EXPIRED ' . $user->plan->pool_expired->pool_name);
+                        } else {
+                            Mikrotik::removePpoeUser($client, $user->username);
+                        }
+                        Mikrotik::removePpoeActive($client, $user->username);
+                    }
+                }
+
+                $user->status = 'off';
+                $user->save();
+            } catch (\Exception $e) {
+                Log::error('Failed to deactivate user ' . $user->username . ': ' . $e->getMessage());
+            }
+        }
+
+        Log::put('Deactivate ' . count($users) . ' accounts', auth()->user());
         return response()->json(['message' => 'Berhasil menonaktifkan akun terpilih.']);
     }
 
