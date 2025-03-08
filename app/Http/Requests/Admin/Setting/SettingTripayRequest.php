@@ -19,14 +19,16 @@ class SettingTripayRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function rules(): array
-    {
-        return [
-            'tripay_api_key'=> 'required|string',
-            'tripay_private_key'=> 'required|string',
-            'tripay_merchant_code'=> 'required|string',
-            'tripay_channels' => 'nullable|array',
-            'tripay_environtment' => 'required|string|in:sandbox,production',
-        ];
-    }
+    public function rules()
+{
+
+    return [
+        'tripay_api_key'      => 'required|string',
+        'tripay_private_key'  => 'required|string',
+        'tripay_merchant_code'=> 'required|string',
+        'tripay_environment'  => 'required|in:sandbox,production',
+        'tripay_channels'     => 'nullable|array',
+    ];
+}
+
 }

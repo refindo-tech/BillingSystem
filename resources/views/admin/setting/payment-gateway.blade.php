@@ -38,13 +38,13 @@
             </div>
 
             <!--begin::Card body-->
-            <div class="card-body" x-data="tripayForm()" x-init="init()">
+            <div class="card-body">
                 <!--begin::Form-->
                 <form class="form fv-plugins-bootstrap5 fv-plugins-framework flex flex-col gap-5" method="POST"
                     action="{{ route('admin:setting.tripay.update') }}">
                     @method('PUT')
                     @csrf
-                    <x-form.group.select name="tripay_environment" required :value="@$tripay['tripay_environment']"
+                    <x-form.group.select name="tripay_environment" required :value="@$tripay['tripay_environment'] ?? 'sandbox'"
                                                 :options="[
                                                     'sandbox' => 'Sandbox',
                                                     'production' => 'Production'
@@ -148,7 +148,7 @@
             </div>
 
             <!--begin::Card body-->
-            <div class="card-body" x-data="xenditForm()" x-init="init()">
+            <div class="card-body">
                 <!--begin::Form-->
                 <form class="form fv-plugins-bootstrap5 fv-plugins-framework flex flex-col gap-5" method="POST"
                     action="{{ route('admin:setting.xendit.update') }}">
@@ -220,71 +220,5 @@
         <!--end::Card-->
     </div>
 
-    @push('addon-script')
-        <script>
-            window.xenditForm = () => ({
-                isLimited: false,
-                isTimeLimit: false,
-                isDataLimit: false,
-                getPools(routerId, defaultValue) {
-                    fetch("{{ route('admin:network.pool.option') }}?router_id=" + routerId)
-                        .then(res => res.json())
-                        .then(res => {
-                            $('[name="pool_expired_id"]').empty().select2({
-                                data: [{
-                                    id: "",
-                                    text: ""
-                                }, ...Object.entries(res).map(([key, value]) => {
-                                    return {
-                                        id: key,
-                                        text: value
-                                    }
-                                })]
-                            }).val(defaultValue).trigger('change')
-                        })
-                },
-                submit(e) {
-                    console.log(e)
-                },
-                init() {
-                    this.getPools($('[name="router_id"]').val(), @json($xendit['pool_expired_id'] ?? ''))
-                    $('[name="router_id"]').on('change', (e) => {
-                        this.getPools(e.target.value)
-                    })
-
-                    this.isLimited = $('[name="typebp"]').val() == "Limited"
-                    $('[name="typebp"]').on('change', (e) => {
-                        this.isLimited = e.target.value == "Limited"
-                    })
-
-                    setTimeout(() => {
-                        this.setLimitOption();
-                    }, 200)
-                    this.$watch("isLimited", (value) => {
-                        if (value) {
-                            this.setLimitOption()
-                        }
-                    })
-                },
-                setLimitOption() {
-                    $('[name="limit_type"]').select2()
-                    $('[name="time_unit"]')?.select2()
-                    $('[name="data_unit"]')?.select2()
-                    this.isTimeLimit = $('[name="limit_type"]').val() == "Time_Limit" || $(
-                            '[name="limit_type"]')
-                        .val() == "Both_Limit"
-                    this.isDataLimit = $('[name="limit_type"]').val() == "Data_Limit" || $(
-                            '[name="limit_type"]')
-                        .val() == "Both_Limit"
-                    $('[name="limit_type"]').on('change', (e) => {
-                        this.isTimeLimit = e.target.value == "Time_Limit" || e.target.value ==
-                            "Both_Limit"
-                        this.isDataLimit = e.target.value == "Data_Limit" || e.target.value ==
-                            "Both_Limit"
-                    })
-                }
-
-            })
-        </script>
-    @endpush
+   
 </x-admin-layout>

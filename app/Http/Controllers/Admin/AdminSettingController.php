@@ -58,6 +58,7 @@ class AdminSettingController extends Controller
     public function updateTripay(SettingTripayRequest $request)
     {
 
+       
         Tripay::updateConfig($request->validated());
 
         return redirect()->back()->with('success', 'Tripay setting has been updated');
