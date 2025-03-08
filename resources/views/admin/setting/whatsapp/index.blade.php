@@ -31,8 +31,7 @@
                             <i class="bi bi-info-circle-fill"></i> Notif Penagihan
                         </button>
                     </form>
-                    <form id="billing-notif-isolate" action="{{ route('admin:whatsapp.isolate') }}"
-                        method="POST">
+                    <form id="billing-notif-isolate" action="{{ route('admin:whatsapp.isolate') }}" method="POST">
                         @csrf
                         <button type="submit" class="btn btn-danger w-100 w-sm-auto">
                             <i class="bi bi-info-circle-fill"></i> Notif Isolir
@@ -564,7 +563,13 @@
         </script>
         <script>
             $(document).ready(function() {
-                $("#whatsapp_message tbody").on("click", "tr", function() {
+                $("#whatsapp_message tbody").on("click", "tr", function(event) {
+                    // Cek apakah yang diklik adalah checkbox
+                    if ($(event.target).is(".message-checkbox")) {
+                        event.stopPropagation(); // Hentikan event agar tidak trigger modal
+                        return;
+                    }
+
                     let phone = $(this).data("phone"); // Ambil nomor tujuan
                     let message = $(this).data("message"); // Ambil pesan
 

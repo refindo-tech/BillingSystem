@@ -23,6 +23,7 @@ use App\Support\Facades\Tripay;
 use App\Models\Customer;
 use App\Models\KeyWhatsapp;
 use App\Models\Transaction;
+use App\Models\UserRecharge;
 use App\Models\WhatsappMessage;
 use App\Models\WhatsAppTemplate;
 use App\Support\Package;
@@ -112,7 +113,7 @@ class CustomerOrderController extends Controller
             $server_id
         );
 
-        
+
         return redirect()->route('customer:dashboard')->with('success', 'Transaction has been created');
     }
 
@@ -132,20 +133,19 @@ class CustomerOrderController extends Controller
         $activeGateway = Config::get('active_payment_gateway', 'tripay');
         $payment_channel = explode(' - ', $bill->userRecharge->method)[1] ?? 'default';
 
-        $order = PaymentGateway::create
-        ([
-                'username' => $bill->customer->username,
-                'user_recharge_id' => $bill->userRecharge->id,
-                'gateway' => $activeGateway,
-                'plan_id' => $bill->plan_id,
-                'plan_name' => $bill->plan->name,
-                'router_id' => $bill->router_id,
-                'router_name' => $bill->router->name,
-                'price' => $bill->price,
-                'status' => PaymentGatewayStatus::UNPAID,
-                'payment_channel' => $payment_channel,
-                'transaction_type' => 'recharge',
-            ]);
+        $order = PaymentGateway::create([
+            'username' => $bill->customer->username,
+            'user_recharge_id' => $bill->userRecharge->id,
+            'gateway' => $activeGateway,
+            'plan_id' => $bill->plan_id,
+            'plan_name' => $bill->plan->name,
+            'router_id' => $bill->router_id,
+            'router_name' => $bill->router->name,
+            'price' => $bill->price,
+            'status' => PaymentGatewayStatus::UNPAID,
+            'payment_channel' => $payment_channel,
+            'transaction_type' => 'recharge',
+        ]);
 
         //process transaction
         if ($activeGateway === 'xendit') {
@@ -182,7 +182,6 @@ class CustomerOrderController extends Controller
             if ($order->gateway === 'xendit') {
                 Xendit::validateConfig();
                 Xendit::getStatus($order, $customer);
-                
             } elseif ($order->gateway === 'tripay') {
                 Tripay::validateConfig();
                 Tripay::getStatus($order, $customer);
@@ -195,7 +194,7 @@ class CustomerOrderController extends Controller
                 // Generate pesan otomatis
                 $message = $this->generatePaymentMessage($order, $customer);
 
-                $messageSchedule = $this->generateBillingMessage($order, $customer);
+                // dd($message, $customer, $order);
 
                 if (!empty($customer->phonenumber) && $message) {
                     $tokenDevice = KeyWhatsapp::first()->key_device;
@@ -211,16 +210,34 @@ class CustomerOrderController extends Controller
                         'status'  => 'sent',
                     ]);
 
-                    
+
                     $invoice = Transaction::where('username', $customer->username)->latest('id')->first();
-                    $expiredAt = $invoice->expired_at;
-                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
-                    WhatsappMessage::create([
-                        'phone'   => $customer->phonenumber,
-                        'message' => $messageSchedule,
-                        'date'    => $expiredAt, // Simpan sesuai jadwal pengiriman
-                        'status'  => 'scheduled',
-                    ]);
+                    $plan = Plan::find($order->plan_id);
+                    if ($plan->validity_unit === ValidityUnit::MONTHS) {
+                        $expiredAt = Carbon::parse($invoice->expired_at)->subDays(7)->timestamp;
+                        $messageSchedule = $this->generateBillingMessage($order, $customer, $plan);
+
+                        SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                        WhatsappMessage::create([
+                            'phone'   => $customer->phonenumber,
+                            'message' => $messageSchedule,
+                            'date'    => $invoice->expired_at, // Simpan dalam format datetime
+                            'status'  => 'scheduled',
+                        ]);
+                    } elseif ($plan->validity_unit === ValidityUnit::DAYS) {
+                        $expiredAt = Carbon::parse($invoice->expired_at)->subDays(1)->timestamp;
+                        $messageSchedule = $this->generateBillingMessage($order, $customer, $plan);
+
+                        SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                        WhatsappMessage::create([
+                            'phone'   => $customer->phonenumber,
+                            'message' => $messageSchedule,
+                            'date'    => $expiredAt, // Simpan dalam format datetime
+                            'status'  => 'scheduled',
+                        ]);
+                    }
                 }
             }
 
@@ -235,15 +252,16 @@ class CustomerOrderController extends Controller
         // Ambil template pesan dari database berdasarkan tipe 'Pembayaran'
         $template = WhatsAppTemplate::where('type', 'invoice')->first();
         $invoice = Transaction::where('username', $customer->username)->latest('id')->first();
+        $userRecharge = UserRecharge::where('id', $order->user_recharge_id)->first();
         if (!$template) return null;
 
         // Data pengganti untuk template
         $replacements = [
             '#INVOICE#'              => $invoice->invoice, // Sesuaikan dengan ID invoice
-            '#NOLAYANAN#'            => $order->service_number ?? '-', // Jika ada nomor layanan
+            '#NOLAYANAN#'            => $userRecharge->service_number ?? '-', // Jika ada nomor layanan
             '#NAMAPELANGGAN#'        => $customer->fullname,
             '#CHANNEL#'              => strtoupper($order->payment_channel), // XENDIT, TRIPAY, dll.
-            '#TGLBAYAR#'             => $order->paid_date->format('d-m-Y H:i'),
+            '#TGLBAYAR#'             => Carbon::parse($order->paid_date)->translatedFormat('j F Y'),
             '#SUBTOTAL#'             => number_format($order->price, 0, ',', '.'),
             '#DISKON#'               => number_format(0, 0, ',', '.'), // Sesuaikan jika ada diskon
             '#KODEUNIK#'             => number_format(0, 0, ',', '.'), // Sesuaikan jika ada kode unik
@@ -262,11 +280,12 @@ class CustomerOrderController extends Controller
         // Ambil template pesan dari database berdasarkan tipe 'Penagihan'
         $template = WhatsAppTemplate::where('type', 'Penagihan')->first();
         $transaction = Transaction::where('username', $customer->username)->latest('id')->first();
+        $userRecharge = UserRecharge::where('customer_id', $customer->id)->first();
         if (!$template) return null;
 
         // Data pengganti untuk template
         $replacements = [
-            '#NOLAYANAN#'       => $transaction->service_number,
+            '#NOLAYANAN#'       => $userRecharge->service_number,
             '#NAMAPELANGGAN#'   => $customer->fullname,
             '#ALAMATPASANG#'    => $customer->address,
             '#INVOICE#'         => $transaction->invoice,
@@ -278,8 +297,8 @@ class CustomerOrderController extends Controller
             '#ADM#'             => number_format($transaction->adm, 0, ',', '.'),
             '#TOTAL#'           => number_format($transaction->price, 0, ',', '.'),
             '#JATUHTEMPO#'      => $transaction->expired_at,
-            '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
-            '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
+            '#VIATRANSFERBANK#' => "Via Transfer Bank: BNI, BCA, Mandiri, BTN, BSI, Permata Bank",
+            '#VIAPAYMENTGATEWAY#' => "Via Dana virtual: GoPay, ShopeePay, Dana, OVO",
         ];
 
         // Mengganti placeholder dengan nilai dari pelanggan

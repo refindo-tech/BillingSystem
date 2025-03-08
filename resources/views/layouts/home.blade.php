@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'My App' }}</title>
-    <link rel="icon" href="{{ asset('assets/media/logos/favicon.ico') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('assets/media/logos/new-favicon.png') }}" type="image/x-icon" />
     @vite('resources/css/app.css')
 </head>
 <body>
@@ -23,10 +23,10 @@
                 <p class="text-[18px] font-medium text-white">
                 <h1 class="text-white font-extrabold justify-center flex items-center md:justify-start">
                     {{-- <span class="text-rose-600">NETPLUS COnnection</span>Net --}}
-                    <img src="{{ asset('logo.png') }}" alt="NETPLUS Connection" class="w-auto h-[75px]">
+                    <img src="{{ asset('assets/media/logos/new-logo.png') }}" alt="PT Inovasi Network Plus" class="w-auto h-[75px]">
                 </h1>
                 </p>
-                <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Mitra dari PT Lintas Network Solusi dengan No : 005/LNS/PKS/III/2023 dengan nomor izin penyelenggara Internet Service Provider 0039/TEL.04.02/2023 dan berlaku secara Nasional. Selaras dengan itu, NETPLUS Connection mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
+                <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Internet Service Provider (ISP) Legal dengan nomor izin penyelenggara - dan berlaku secara Nasional. Selaras dengan itu, iNETPLUS mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
                 <div class="mt-[18px] flex gap-4">
                     <a class="hover:scale-110" target="_blank" href="#">
                         <i class="fa-brands fa-facebook text-2xl text-white"></i>
@@ -67,8 +67,8 @@
                         </svg>
                     </div>
                     <div class="ml-[18px]">
-                        <a href="mailto:cs@netplusconnection.id"
-                            class="font-Inter text-[14px] font-medium text-[#fff]">cs@netplusconnection.id</a>
+                        <a href="mailto:cs@inetplus.id"
+                            class="font-Inter text-[14px] font-medium text-[#fff]">cs@inetplus.id</a>
                         <p class="font-Inter text-[12px] font-medium text-[#fff]">Support Email</p>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         </svg>
                     </div>
                     <div class="ml-[27px]">
-                        <a href="https://maps.app.goo.gl/pmvV2mj6KVq1Vjbh6" class="font-Inter text-[14px] font-medium text-[#fff]">Ruko Jl. Graha Raya Bintaro No.12 Blok G 1, Sudimara Pinang, Kec. Serpong, Kota Tangerang, Banten 15324</a>
+                        <a href="https://maps.app.goo.gl/DEBFE7UnHcGKorHFA" class="font-Inter text-[14px] font-medium text-[#fff]">JL Pesona Kahuripan 3 Blok C1 no 7, Desa Bojong Kec.Kelapa Nunggal Kab.Bogor 16710</a>
                         <p class="font-Inter text-[12px] font-medium text-white">Address</p>
                     </div>
                 </div>

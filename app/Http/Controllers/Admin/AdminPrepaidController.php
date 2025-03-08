@@ -199,9 +199,7 @@ class AdminPrepaidController extends Controller
             // Generate pesan WhatsApp
             $message = $this->generateRechargeMessage($customer, $plan, $request);
             $messageSchedule = $this->generateBillingMessage($customer, $plan, $request);
-            $expiredAt = $request->expired_at;
-
-            // dd($message, $messageSchedule, $expiredAt);
+            // dd($transaction, $message, $messageSchedule);
 
             // Kirim pesan WhatsApp jika nomor HP tersedia
             if (!empty($customer->phonenumber) && $message) {
@@ -216,18 +214,34 @@ class AdminPrepaidController extends Controller
                     'status' => 'sent',
                 ]);
 
-                SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
-                WhatsappMessage::create([
-                    'phone' => $customer->phonenumber,
-                    'message' => $messageSchedule,
-                    'date' => $expiredAt, // Simpan sesuai jadwal pengiriman
-                    'status' => 'scheduled',
-                ]);
+                if ($plan->validity_unit === ValidityUnit::MONTHS) {
+                    $expiredAt = Carbon::parse($request->expired_at)->subDays(7)->timestamp;
+                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $messageSchedule,
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
+                        'status'  => 'scheduled',
+                    ]);
+
+                } elseif ($plan->validity_unit === ValidityUnit::DAYS) {
+                    $expiredAt = Carbon::parse($request->expired_at)->subDays(1)->timestamp;
+                    SendWhatsAppScheduledMessageJob::dispatch($customer->phonenumber, $messageSchedule, $tokenDevice, $expiredAt);
+
+                    WhatsappMessage::create([
+                        'phone'   => $customer->phonenumber,
+                        'message' => $messageSchedule,
+                        'date'    => $request->expired_at, // Simpan sesuai jadwal pengiriman
+                        'status'  => 'scheduled',
+                    ]);
+                }
             }
 
             Log::put('Recharge account ' . $customer->username, auth()->user());
 
             return redirect()->route('admin:prepaid.user.index')->with('success', __('success.created'));
+
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -270,29 +284,25 @@ class AdminPrepaidController extends Controller
 
         // Data pengganti untuk template
         $replacements = [
-            '#NOLAYANAN#' => $request->service_number,
-            '#NAMAPELANGGAN#' => $customer->fullname,
-            '#ALAMATPASANG#' => $customer->address,
-            '#INVOICE#' => $transaction->invoice,
-            '#PERIODE#' => $request->periode,
-            '#SUBTOTAL#' => number_format($transaction->price, 0, ',', '.'),
-            '#DISKON#' => number_format($request->diskon, 0, ',', '.'),
-            '#KODEUNIK#' => $request->kode_unik,
-            '#PPN#' => number_format($request->ppn, 0, ',', '.'),
-            '#ADM#' => number_format($request->adm, 0, ',', '.'),
-            '#TOTAL#' => number_format($transaction->price, 0, ',', '.'),
-            '#JATUHTEMPO#' => $request->expired_at,
-            '#VIATRANSFERBANK#' => "BCA: 1234567890 a.n PT. Contoh",
-            '#VIAPAYMENTGATEWAY#' => "GoPay, ShopeePay, dll.",
+            '#NOLAYANAN#'       => $request->service_number,
+            '#NAMAPELANGGAN#'   => $customer->fullname,
+            '#ALAMATPASANG#'    => $customer->address,
+            '#INVOICE#'         => $transaction->invoice,
+            '#PERIODE#'         => $request->periode,
+            '#SUBTOTAL#'        => number_format($plan->price, 0, ',', '.'),
+            '#DISKON#'          => number_format($request->diskon, 0, ',', '.'),
+            '#KODEUNIK#'        => $request->kode_unik,
+            '#PPN#'             => number_format($request->ppn, 0, ',', '.'),
+            '#ADM#'             => number_format($request->adm, 0, ',', '.'),
+            '#TOTAL#'           => number_format($plan->price, 0, ',', '.'),
+            '#JATUHTEMPO#'      => $request->expired_at,
+            '#VIATRANSFERBANK#' => "Via Transfer Bank: BNI, BCA, Mandiri, BTN, BSI, Permata Bank",
+            '#VIAPAYMENTGATEWAY#' => "Via Dana virtual: GoPay, ShopeePay, Dana, OVO",
         ];
 
         // Mengganti placeholder dengan nilai dari pelanggan
         return str_replace(array_keys($replacements), array_values($replacements), $template->message);
     }
-
-
-
-
 
     public function updateUser(PrepaidUserUpdateRequest $request, UserRecharge $user)
     {
