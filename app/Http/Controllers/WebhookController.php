@@ -52,7 +52,7 @@ class WebhookController extends Controller
 
                 $trx->pg_paid_response = json_encode($data);
                 $trx->payment_method = $data['payment_method_code'];
-                $trx->payment_channel = $data['payment_method'];
+                $trx->payment_channel = $data['payment_method_code'];
                 $trx->paid_date = now();
                 $trx->status = PaymentGatewayStatus::PAID;
             } elseif (in_array($data['status'], ['EXPIRED', 'FAILED'])) {

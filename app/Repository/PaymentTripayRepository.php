@@ -140,7 +140,7 @@ class PaymentTripayRepository
 
             $trx->pg_paid_response = json_encode($result);
             $trx->payment_method = $result['data']['payment_method'];
-            $trx->payment_channel = $result['data']['payment_name'];
+            $trx->payment_channel = $result['data']['payment_method'];
             $trx->paid_date = date('Y-m-d H:i:s', strtotime($result['data']['paid_at']));
             $trx->status = PaymentGatewayStatus::PAID;
         } elseif (in_array($status, ['EXPIRED', 'FAILED'])) {
