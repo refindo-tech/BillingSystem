@@ -28,6 +28,14 @@ Route::post('/tripay/callback', [WebhookController::class, 'handleTripay']);
 Route::post('/xendit/callback', [WebhookController::class, 'handleXendit']);
 
 
+Route::get('/tripay/callback', function () {
+    return view('home.home');
+});
+Route::get('/xendit/callback', function () {
+    return view('home.home');
+});
+
+
 
 Route::middleware('auth')->group(function () {
 

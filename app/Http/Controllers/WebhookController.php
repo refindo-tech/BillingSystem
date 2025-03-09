@@ -21,11 +21,19 @@ class WebhookController extends Controller
     public function handleTripay(Request $request)
     {
         
+        
         Log::info('Tripay callback received', $request->all());
 
-        // $signatureKey = Config::get('tripay_private_key');
-        // $merchantCode = Config::get('tripay_merchant_code');
-        
+        $signatureKey = Config::get('tripay_private_key');
+
+        $json = file_get_contents('php://input');
+        $signature = hash_hmac('sha256', $json, $signatureKey);
+
+        if ($request->header('X-Callback-Signature') !== $signature) {
+            return response()->json(['success' => false, 'message' => 'Invalid signature'], 403);
+        }
+
+
         $data = $request->all();
 
 
