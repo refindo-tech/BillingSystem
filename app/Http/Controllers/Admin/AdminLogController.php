@@ -26,6 +26,12 @@ class AdminLogController extends Controller
             'days' => ['required', 'numeric'],
         ]);
 
+        //if days is 0, delete all logs
+        if ($validated['days'] == 0) {
+            Log::truncate();
+            return redirect()->route('admin:log.index')->with('success', 'All logs deleted');
+        }
+
         Log::whereDate('date', '<', now()->subDays($validated['days']))->delete();
 
         return redirect()->route('admin:log.index')->with('success', 'Deleted logs older than '.$validated['days'].' days');
