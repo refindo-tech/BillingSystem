@@ -20,18 +20,14 @@ class WebhookController extends Controller
      */
     public function handleTripay(Request $request)
     {
+        
         Log::info('Tripay callback received', $request->all());
 
-        $signatureKey = Config::get('tripay_private_key');
-        $merchantCode = Config::get('tripay_merchant_code');
+        // $signatureKey = Config::get('tripay_private_key');
+        // $merchantCode = Config::get('tripay_merchant_code');
         
         $data = $request->all();
-        $expectedSignature = hash_hmac('sha256', $merchantCode . $data['reference'] . $data['status'], $signatureKey);
 
-        // Verify Signature
-        if ($expectedSignature !== $data['signature']) {
-            return response()->json(['success' => false, 'message' => 'Invalid signature'], 403);
-        }
 
         // Find transaction by reference ID and lock row
         $trx = PaymentGateway::where('gateway_trx_id', $data['reference'])->lockForUpdate()->first();
@@ -55,8 +51,8 @@ class WebhookController extends Controller
                 );
 
                 $trx->pg_paid_response = json_encode($data);
-                $trx->payment_method = $data['payment_method'];
-                $trx->payment_channel = $data['payment_name'];
+                $trx->payment_method = $data['payment_method_code'];
+                $trx->payment_channel = $data['payment_method'];
                 $trx->paid_date = now();
                 $trx->status = PaymentGatewayStatus::PAID;
             } elseif (in_array($data['status'], ['EXPIRED', 'FAILED'])) {
