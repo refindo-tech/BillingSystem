@@ -7,6 +7,8 @@ use App\Http\Controllers\Customer\CustomerTicketController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\WebhookController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,6 +23,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('home.home');
 })->middleware('guest');
+
+Route::post('/tripay/callback', [WebhookController::class, 'handleTripay']);
+Route::post('/xendit/callback', [WebhookController::class, 'handleXendit']);
+
+
+Route::get('/tripay/callback', function () {
+    return view('home.home');
+});
+Route::get('/xendit/callback', function () {
+    return view('home.home');
+});
+
 
 
 Route::middleware('auth')->group(function () {
