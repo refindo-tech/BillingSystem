@@ -2,7 +2,7 @@
     <!--begin::Copyright-->
     <div class="order-2 text-dark order-md-1">
         <span class="text-muted fw-semibold me-1">{{ now()->year }}&copy;</span>
-        <a href="#" target="_blank" class="text-gray-800 text-hover-primary">NETPlus Connection</a>
+        <a href="#" target="_blank" class="text-gray-800 text-hover-primary">iNETPLUS</a>
     </div>
     <!--end::Copyright-->
     <!--begin::Menu-->

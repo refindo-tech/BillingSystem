@@ -16,29 +16,29 @@
         {{ $slot }}
     </main>
 
-    <footer class=" bg-red-700 pt-40 md:pt-24">
+    <footer class=" bg-gray-200 pt-40 md:pt-24">
     <div class="max-w-screen-xl py-6 mx-auto">
         <div class="flex flex-col justify-between px-8 md:flex-row md:px-10">
             <div class="w-full md:w-[480px]">
-                <p class="text-[18px] font-medium text-white">
-                <h1 class="text-white font-extrabold justify-center flex items-center md:justify-start">
-                    {{-- <span class="text-rose-600">NETPLUS COnnection</span>Net --}}
+                <p class="text-[18px] font-medium text-black">
+                <h1 class="text-black font-extrabold justify-center flex items-center md:justify-start">
+                    {{-- <span class="text-rose-600">iNETPLUS</span>Net --}}
                     <img src="{{ asset('assets/media/logos/new-logo.png') }}" alt="PT Inovasi Network Plus" class="w-auto h-[75px]">
                 </h1>
                 </p>
-                <p class="mt-[18px] text-[15px] font-normal text-white/[80%]">Adalah Internet Service Provider (ISP) Legal dengan nomor izin penyelenggara - dan berlaku secara Nasional. Selaras dengan itu, iNETPLUS mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
+                <p class="mt-[18px] text-[15px] font-normal text-black/[80%]">Adalah Internet Service Provider (ISP) Legal dengan nomor izin penyelenggara 310/TEL.04.02/2025 dan berlaku secara Nasional. Selaras dengan itu, iNETPLUS mendukung perluasan dan percepatan peningkatan keterjangkauan pemerataan layanan akses internet sekaligus mendorong pemanfaatan teknologi informasi dan komunikasi untuk tujuan peningkatan kecerdasan warga dan kesejahteraan masyarakat secara umum.</p>
                 <div class="mt-[18px] flex gap-4">
                     <a class="hover:scale-110" target="_blank" href="#">
-                        <i class="fa-brands fa-facebook text-2xl text-white"></i>
+                        <i class="fa-brands fa-facebook text-2xl text-black"></i>
                     </a>
                     <a class="hover:scale-110" target="_blank" href="#">
-                        <i class="fa-brands fa-twitter text-2xl text-white"></i>
+                        <i class="fa-brands fa-twitter text-2xl text-black"></i>
                     </a>
                     <a class="hover:scale-110" target="_blank" href="#">
-                        <i class="fa-brands fa-instagram text-2xl text-white"></i>
+                        <i class="fa-brands fa-instagram text-2xl text-black"></i>
                     </a>
                     <a class="hover:scale-110" target="_blank" href="#">
-                        <i class="fa-brands fa-youtube text-2xl text-white"></i>
+                        <i class="fa-brands fa-youtube text-2xl text-black"></i>
                     </a>
                 </div>
             </div>
@@ -53,8 +53,8 @@
                         </svg>
                     </div>
                     <div class="ml-[18px]">
-                        <a href="tel:+6287773777005" class="font-Inter text-[14px] font-medium text-white">+6287773777005</a>
-                        <p class="font-Inter text-[12px] font-medium text-white">Support Number</p>
+                        <a href="tel:+6287773777005" class="font-Inter text-[14px] font-medium text-black">+6287773777005</a>
+                        <p class="font-Inter text-[12px] font-medium text-black">Support Number</p>
                     </div>
                 </div>
                 <div class="mt-[23px] flex">
@@ -68,8 +68,8 @@
                     </div>
                     <div class="ml-[18px]">
                         <a href="mailto:cs@inetplus.id"
-                            class="font-Inter text-[14px] font-medium text-[#fff]">cs@inetplus.id</a>
-                        <p class="font-Inter text-[12px] font-medium text-[#fff]">Support Email</p>
+                            class="font-Inter text-[14px] font-medium text-black">info@inetplus.id</a>
+                        <p class="font-Inter text-[12px] font-medium text-black">Support Email</p>
                     </div>
                 </div>
                 <div class="mt-[23px] flex pl-[10px]">
@@ -82,12 +82,12 @@
                         </svg>
                     </div>
                     <div class="ml-[27px]">
-                        <a href="https://maps.app.goo.gl/DEBFE7UnHcGKorHFA" class="font-Inter text-[14px] font-medium text-[#fff]">JL Pesona Kahuripan 3 Blok C1 no 7, Desa Bojong Kec.Kelapa Nunggal Kab.Bogor 16710</a>
-                        <p class="font-Inter text-[12px] font-medium text-white">Address</p>
+                        <a href="https://maps.app.goo.gl/DEBFE7UnHcGKorHFA" class="font-Inter text-[14px] font-medium text-black">JL Pesona Kahuripan 3 Blok C1 No.7, Desa Bojong Kec.Klapanunggal Kab.Bogor 16710</a>
+                        <p class="font-Inter text-[12px] font-medium text-black">Address</p>
                     </div>
                 </div>
             </div>
-            <div class="mt-6 flex w-full flex-col justify-between text-white sm:flex-row md:mt-0 md:max-w-[241px]">
+            <div class="mt-6 flex w-full flex-col justify-between text-black sm:flex-row md:mt-0 md:max-w-[241px]">
                 <div class="">
                     <p class="text-deutziawhite font-inter text-[18px] font-medium leading-normal">Pages</p>
                     <ul>
@@ -117,7 +117,7 @@
         {{-- <div class="flex items-center justify-center pb-8 pt-[9px] md:py-8">
             <p class="text-[10px] font-normal text-white md:text-[12px]">
 
-                <!-- -->NETPLUS Connection
+                <!-- -->iNETPLUS
             </p>
         </div> --}}
     </div>

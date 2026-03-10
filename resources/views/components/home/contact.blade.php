@@ -25,7 +25,7 @@
                         <i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-solid fa-location-dot"></i>
                     </div>
                     <h4 class="mb-0 text-2xl font-bold text-gray-900 dark:text-white">Kantor Pusat</h4>
-                    <div class="font-normal text-center text-gray-700 dark:text-gray-400">JL Pesona Kahuripan 3 Blok C1 no 7, Desa Bojong Kec.Kelapa Nunggal Kab.Bogor 16710</div>
+                    <div class="font-normal text-center text-gray-700 dark:text-gray-400">JL Pesona Kahuripan 3 Blok C1 No.7, Desa Bojong Kec.Klapanunggal Kab.Bogor 16710</div>
                 </div>
     
                 {{-- Contact Us --}}
@@ -44,7 +44,7 @@
                         <div class="flex flex-col items-center justify-center">
                             <dt class="mb-2 text-3xl md:text-3xl font-bold"><i class="bg-clip-text text-transparent bg-gradient-to-br from-blue-800 to-indigo-700 fa-solid fa-envelope"></i></dt>
                             <dd class="font-normal text-gray-700 dark:text-gray-400">
-                                <a href="mailto:cs@inetplus.id"> cs@inetplus.id </a>
+                                <a href="mailto:info@inetplus.id"> info@inetplus.id </a>
                             </dd>
                             <dd class="font-bold text-gray-700 dark:text-gray-400">Email Address</dd>
                         </div>

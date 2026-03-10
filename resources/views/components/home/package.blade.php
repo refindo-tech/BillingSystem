@@ -15,8 +15,8 @@
             </div>
             <div
                 class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 md:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 py-12 pt-16 md:py-16 border-dashed">
-                <x-home.packageCard title="Subsidi" description="Paket internet murah, stabil dan unlimited."
-                    price="0K" :features="[
+                <x-home.packageCard title="SUBSIDI" description="Paket internet murah, stabil dan unlimited."
+                    price="174K" :features="[
                         'Pemasangan Gratis',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -25,8 +25,8 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-home.packageCard title="Komersil" description="Cocok untuk penggunaan skala kecil dan menengah."
-                    price="0K" :features="[
+                <x-home.packageCard title="KOMERSIL" description="Cocok untuk penggunaan skala kecil dan menengah."
+                    price="225K" :features="[
                         'Pemasangan Gratis',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -35,20 +35,20 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-home.packageCard title="Premium"
-                    description="Layanan premium dengan kecepatan tinggi pada skala besar." price="0K"
+                <x-home.packageCard title="SULTAN"
+                    description="Layanan Sultan dengan kecepatan tinggi pada skala besar." price="325K"
                     :features="[
                         'Pemasangan Gratis',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
-                        'Speed up to 60 Mbps',
+                        'Speed up to 65 Mbps',
                         'Sosmed & Streaming Lancar',
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
 
-                <x-home.packageCard title="Sultan" description="Untuk para Sultan yang membutuhkan layanan terbaik."
-                    price="0K" :features="[
+                <x-home.packageCard title="GAMER" description="Cocok untuk para Gamer yang membutuhkan layanan terbaik."
+                    price="450K" :features="[
                         'Pemasangan Gratis',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -64,12 +64,12 @@
         <div class="relative pt-12">
             <div
                 class="flex justify-center items-center mb-4 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6  border-dashed w-56 md:w-96 mx-auto bg-white absolute -top-[1.25rem] left-1/2 transform -translate-x-1/2">
-                <span class="text-2xl text-center font-bold text-orange-600 dark:text-white">Paket Internet Coreporate</span>
+                <span class="text-2xl text-center font-bold text-orange-600 dark:text-white">Paket Internet Premium</span>
             </div>
             <div
                 class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-4 sm:gap-6 xl:gap-4 lg:space-y-0 border-4 border-gray-200 rounded-xl dark:border-gray-700 dark:bg-gray-800 p-4 md:p-6 pt-16 md:pt-16 border-dashed">
-                <x-home.packageCard2 title="CORP30" description="Paket Internet Coreporate setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat makin nyaman dalam berselancar. Cocok untuk UMKM atau Sekolah dan mendapatkan layanan prioritas."
-                    price="0K" :features="[
+                <x-home.packageCard2 title="PREM 30" description="Paket Internet Premium setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat makin nyaman dalam berselancar. Cocok untuk UMKM atau Sekolah dan mendapatkan layanan prioritas."
+                    price="350K" :features="[
                         'Biaya pemasangan 1juta',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -78,8 +78,8 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-home.packageCard2 title="CORP50" description="Paket Internet Coreporate sangat setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat berselancar semakin ngacir. Cocok untuk Sekolah atau Cafe yang membutuhkan Internet kualitas prima dan mendapatkan layanan prioritas."
-                    price="0K" :features="[
+                <x-home.packageCard2 title="PREM 50" description="Paket Internet Premium sangat setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat berselancar semakin ngacir. Cocok untuk Sekolah atau Cafe yang membutuhkan Internet kualitas prima dan mendapatkan layanan prioritas."
+                    price="500K" :features="[
                         'Biaya pemasangan 1juta',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
@@ -88,8 +88,8 @@
                         'Gratis Konsultasi',
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
-                <x-home.packageCard2 title="CORP100"
-                    description="Paket Internet Coreporate super setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat pertukaran data, download, upload, lebih optimal. Cocok untuk Perusahaan atau Instansi dan mendapatkan layanan prioritas." price="0K"
+                <x-home.packageCard2 title="PREM 100"
+                    description="Paket Internet Premium super setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz membuat pertukaran data, download, upload, lebih optimal. Cocok untuk Perusahaan atau Instansi dan mendapatkan layanan prioritas." price="800K"
                     :features="[
                         'Biaya pemasangan 1juta',
                         'Jaringan Fiber Optik',
@@ -100,10 +100,10 @@
                         'Tarif Flat! Tanpa Kenaikan Sepihak',
                     ]" />
 
-                <x-home.packageCard2 title="CORP150" description="Paket Internet Coreporate paling setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz 
+                <x-home.packageCard2 title="PREM 150" description="Paket Internet Premium paling setabil dengan Wireless support dual band 2.4Ghz dan 5Ghz 
 membuat pertukaran data, download, upload dan game semakin optimal. Cocok di gunakan untuk 
 Perusahaan, Instansi, streamer game dan mendapatkan layanan prioritas."
-                    price="0K" :features="[
+                    price="1200K" :features="[
                         'Biaya pemasangan 1juta',
                         'Jaringan Fiber Optik',
                         'Unlimited, Tanpa Batas Quota!',
