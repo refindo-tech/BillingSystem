@@ -17,7 +17,7 @@
                 <div
                     class="relative overflow-hidden rounded-3xl bg-transparent shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
                     <!-- Item 1 -->
-                    <div class="duration-700 ease-in-out px-4 md:px-6" data-testimony-item>
+                    <div class="px-4 md:px-6" data-testimony-item>
                         <div
                             class="bg-net-blue-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 flex flex-col gap-6">
                             <p class="text-sm md:text-base leading-relaxed md:leading-relaxed">
@@ -44,7 +44,7 @@
                     </div>
 
                     <!-- Item 2 -->
-                    <div class="hidden duration-700 ease-in-out px-4 md:px-6" data-testimony-item>
+                    <div class="hidden px-4 md:px-6" data-testimony-item>
                         <div
                             class="bg-net-blue-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 flex flex-col gap-6">
                             <p class="text-sm md:text-base leading-relaxed md:leading-relaxed">
@@ -71,7 +71,7 @@
                     </div>
 
                     <!-- Item 3 -->
-                    <div class="hidden duration-700 ease-in-out px-4 md:px-6" data-testimony-item>
+                    <div class="hidden px-4 md:px-6" data-testimony-item>
                         <div
                             class="bg-net-blue-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 flex flex-col gap-6">
                             <p class="text-sm md:text-base leading-relaxed md:leading-relaxed">
@@ -98,7 +98,7 @@
                     </div>
 
                     <!-- Item 4 -->
-                    <div class="hidden duration-700 ease-in-out px-4 md:px-6" data-testimony-item>
+                    <div class="hidden px-4 md:px-6" data-testimony-item>
                         <div
                             class="bg-net-blue-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 flex flex-col gap-6">
                             <p class="text-sm md:text-base leading-relaxed md:leading-relaxed">
@@ -126,7 +126,7 @@
                     </div>
 
                     <!-- Item 5 -->
-                    <div class="hidden duration-700 ease-in-out px-4 md:px-6" data-testimony-item>
+                    <div class="hidden px-4 md:px-6" data-testimony-item>
                         <div
                             class="bg-net-blue-500 text-white rounded-3xl p-6 md:p-8 lg:p-10 flex flex-col gap-6">
                             <p class="text-sm md:text-base leading-relaxed md:leading-relaxed">
@@ -220,18 +220,10 @@
             items.forEach((el, i) => {
                 const isActive = i === nextIndex;
 
-                el.classList.add(
-                    'transition-all',
-                    'duration-700',
-                    'ease-in-out'
-                );
-
                 if (isActive) {
-                    el.classList.remove('opacity-0', 'translate-x-6', 'pointer-events-none', 'hidden');
-                    el.classList.add('opacity-100', 'translate-x-0');
+                    el.classList.remove('hidden');
                 } else {
-                    el.classList.remove('opacity-100', 'translate-x-0');
-                    el.classList.add('opacity-0', 'translate-x-6', 'pointer-events-none');
+                    el.classList.add('hidden');
                 }
             });
 
@@ -269,15 +261,6 @@
         });
 
         // initial state
-        items.forEach((el, i) => {
-            if (i === 0) {
-                el.classList.add('opacity-100', 'translate-x-0');
-            } else {
-                el.classList.add('opacity-0', 'translate-x-6', 'pointer-events-none');
-            }
-        });
         showSlide(0);
-
-        setInterval(next, 5000);
     });
 </script>
