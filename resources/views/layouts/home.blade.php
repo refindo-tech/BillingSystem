@@ -16,7 +16,15 @@
         {{ $slot }}
     </main>
 
-    <footer class=" bg-gray-200 pt-40 md:pt-24">
+    <a href="https://wa.me/6287773777005" target="_blank" rel="noopener noreferrer"
+       class="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-black/30 bg-[#501bcc] hover:bg-[#4320a5] transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="h-7 w-7" aria-hidden="true">
+            <path fill="#FFFFFF" d="M16.04 6C10.53 6 6.06 10.3 6.06 15.63c0 2.04.68 3.94 1.85 5.49L6 26l4.99-1.64c1.5.82 3.22 1.29 5.05 1.29 5.51 0 9.98-4.3 9.98-9.63C25.99 10.3 21.55 6 16.04 6zm0 17.5c-1.57 0-3.03-.43-4.27-1.19l-.31-.19-2.96.96.97-2.86-.2-.29a7.32 7.32 0 0 1-1.26-4.08c0-4.02 3.34-7.29 7.4-7.29 4.06 0 7.37 3.27 7.37 7.29 0 4.01-3.31 7.29-7.37 7.29zm4.05-5.45c-.22-.11-1.3-.64-1.5-.71-.2-.07-.35-.11-.5.11-.15.22-.57.71-.7.85-.13.15-.26.16-.48.05-.22-.11-.95-.35-1.8-1.11-.66-.58-1.11-1.3-1.24-1.52-.13-.22-.01-.33.1-.44.11-.11.22-.27.33-.4.11-.13.15-.22.22-.37.07-.15.04-.27-.02-.38-.07-.11-.5-1.2-.68-1.64-.18-.44-.36-.37-.5-.37h-.43c-.15 0-.38.05-.58.27-.2.22-.76.74-.76 1.8 0 1.06.78 2.08.89 2.22.11.15 1.54 2.39 3.73 3.25.52.22.93.35 1.25.45.52.17.99.14 1.36.08.41-.06 1.3-.53 1.48-1.04.18-.51.18-.95.13-1.04-.05-.09-.2-.15-.41-.26z"/>
+        </svg>
+        <span class="sr-only">Chat via WhatsApp</span>
+    </a>
+
+   <footer class=" bg-gray-200 pt-40 md:pt-24">
     <div class="max-w-screen-xl py-6 mx-auto">
         <div class="flex flex-col justify-between px-8 md:flex-row md:px-10">
             <div class="w-full md:w-[480px]">
