@@ -19,18 +19,21 @@ export default {
       colors: {
         net: {
           blue: {
-            50: '#2159D4',
-            100: '#0C25CB',
+            50: '#501BCC',
+            100: '#501BCC',
           },
           orange: {
-            50: '#FFAC00',
-            100: '#FD8C03',
-            150: '#FE5A1D',
+            50: '#dd03ff',
+            100: '#dd03ff',
+            150: '#dd03ff',
           },
           red: {
-            50: '#CE1027',
-            100: '#B70026',
+            50: '#08a3fc',
+            100: '#08a3fc',
           },
+        },
+        orange: {
+          600: '#08a3fc',
         },
       },
       keyframes: {

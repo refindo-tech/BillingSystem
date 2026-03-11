@@ -2,24 +2,12 @@
 
     	<!--Start Background Animation Body-->
 		<div class="area z-0 h-screen">
-			<ul class="circles">
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-				<li></li>
-			</ul>
 		</div>
 		<!--End Background Animation Body-->
 
     <div class="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-4 lg:grid-cols-12 pt-0 z-10">
         <div class="mr-auto place-self-center lg:col-span-7 flex flex-col justify-center lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
-            <h1 class="z-10 w-full lg:max-w-2xl mb-4 text-5xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-orange-400 lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
+            <h1 class="z-10 w-full lg:max-w-2xl mb-4 text-5xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl dark:text-white text-center lg:text-left bg-clip-text text-transparent bg-gradient-to-r from-[#08A3FC] to-[#DD03FF] lg:justify-start items-center lg:items-start pt-20 lg:pt-20">
                 {{-- Payments tool for software companies --}}
                 {{ $title }}
             </h1>
@@ -34,14 +22,14 @@
 
             <div class="relative inline-flex group z-10">
                 <a href="#package" title="Get package now"
-                    class="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-net-red-50 font-pj rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 group-hover:bg-white group-hover:text-net-red-50 border-4 border-net-red-50 hover:shadow-lg"
+                    class="relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-net-blue-100 font-pj rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 group-hover:bg-white group-hover:text-net-blue-100 border-4 border-net-blue-100 hover:shadow-lg"
                     role="button">
                     <span class="mr-8">
                         Pilih Paket Sekarang
                     </span>
                     <div
-                        class="mr-2 absolute right-0 flex items-center justify-center w-12 h-12 bg-white rounded-full group-hover:bg-net-red-50">
-                        <i class="text-red-600 fas fa-arrow-right group-hover:text-white animate-bounce-x">
+                        class="mr-2 absolute right-0 flex items-center justify-center w-12 h-12 bg-white rounded-full group-hover:bg-net-blue-100">
+                        <i class="text-net-blue-100 fas fa-arrow-right group-hover:text-white animate-bounce-x">
 
                         </i>
                     </div>
